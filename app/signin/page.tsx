@@ -7,6 +7,8 @@ import { Label } from "@/components/ui/label"
 import { Github, Twitter, MessageCircle } from "lucide-react"
 import Link from "next/link"
 import { cn } from "@/lib/utils"
+import Image from "next/image"
+import Brand from "@/components/ui/brand"
 
 export default function SignInPage() {
   const [email, setEmail] = useState("yoan.ranchon@gmail.com")
@@ -17,17 +19,10 @@ export default function SignInPage() {
       {/* Left side - Dark background with branding */}
       <div className="hidden lg:flex lg:w-1/2 bg-muted flex-col justify-between p-8">
         <div className="flex items-center space-x-2">
-          <div className="w-8 h-8 rounded-full flex items-center justify-center">
-            <div className="w-6 h-6 rounded-full relative">
-              <div
-                className="absolute inset-0 rounded-full"
-                style={{
-                  clipPath: "polygon(0% 0%, 100% 0%, 100% 50%, 0% 100%)",
-                }}
-              ></div>
-            </div>
+          <div className="flex items-center justify-center">
+             <Brand width={20} height={20}/>
           </div>
-          <span className="text-muted-foreground text-xl font-semibold">Arkoa</span>
+          <span className="text-secondary text-xl font-semibold">Arkoa</span>
         </div>
 
         <div className="text-muted-foreground text-lg">"The Open Source alternative to Netlify, Vercel, Heroku."</div>
