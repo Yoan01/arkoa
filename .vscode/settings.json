@@ -1,0 +1,36 @@
+{
+  "workbench.colorTheme": "Deep Blue",
+  "AI.chatLanguage": "English",
+
+  // ✅ ESLint comme formateur principal
+  "eslint.format.enable": true,
+  "editor.defaultFormatter": "dbaeumer.vscode-eslint",
+  "editor.formatOnSave": true,
+  "eslint.run": "onSave",
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "always"
+  },
+
+  // ✅ Supprime le formatage Prettier pour ces langages (on laisse ESLint gérer)
+  "[jsonc]": {
+    "editor.defaultFormatter": "dbaeumer.vscode-eslint"
+  },
+  "[javascript]": {
+    "editor.defaultFormatter": "dbaeumer.vscode-eslint"
+  },
+  "[json]": {
+    "editor.defaultFormatter": "dbaeumer.vscode-eslint"
+  },
+
+  // 🧹 Pas utile mais pas bloquant non plus
+  "eslint.codeActionsOnSave.rules": null,
+  "eslint.execArgv": null,
+  
+  // ✅ Ajout ici : toujours LF
+  "files.eol": "\n",
+
+  // ✅ Autres réglages à garder
+  "files.autoSave": "onWindowChange",
+  "editor.tabCompletion": "on",
+  "diffEditor.ignoreTrimWhitespace": false
+}

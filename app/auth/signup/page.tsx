@@ -3,10 +3,9 @@
 import Link from 'next/link'
 import { useState } from 'react'
 
+import SignupForm from '@/components/auth/signup-form'
 import Brand from '@/components/ui/brand'
-import { Button, buttonVariants } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+import { buttonVariants } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
 export default function SignInPage() {
@@ -25,33 +24,7 @@ export default function SignInPage() {
         <p className='text-sm'>Enter your informations or use google.</p>
       </div>
 
-      <form className='space-y-6'>
-        <div className='space-y-2'>
-          <Label htmlFor='email' className='text-sm font-medium'>
-            Email
-          </Label>
-          <Input
-            id='email'
-            type='email'
-            value={email}
-            onChange={e => setEmail(e.target.value)}
-          />
-        </div>
-
-        <div className='space-y-2'>
-          <Label htmlFor='password' className='text-sm font-medium'>
-            Password
-          </Label>
-          <Input
-            id='password'
-            type='password'
-            value={password}
-            onChange={e => setPassword(e.target.value)}
-          />
-        </div>
-
-        <Button type='submit'>Login</Button>
-      </form>
+      <SignupForm />
 
       {/* Footer */}
       <div className='flex flex-col items-center space-y-6'>
