@@ -41,12 +41,16 @@ export default function SignupForm() {
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     try {
-      signUp.email({
-        email: values.email,
-        password: values.password,
-        name: values.name,
-        callbackURL: '/auth/signin',
-      })
+      signUp
+        .email({
+          email: values.email,
+          password: values.password,
+          name: values.name,
+          callbackURL: '/',
+        })
+        .then(() => {
+          toast.success('Votre compte a bien été créé.')
+        })
     } catch (error) {
       console.error('Form submission error', error)
       toast.error('Erreur lors de la création du compte. Veuillez réessayer.')
@@ -64,7 +68,7 @@ export default function SignupForm() {
           name='name'
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Nom</FormLabel>
+              <FormLabel>Prénom et nom</FormLabel>
               <FormControl>
                 <Input placeholder='John Doe' type='' {...field} />
               </FormControl>
