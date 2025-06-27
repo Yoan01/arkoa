@@ -24,8 +24,6 @@ model User {
   accounts      Account[]
 
   memberships   Membership[]
-  leaves        Leave[]
-  leaveBalances LeaveBalance[]
 
   managedLeaves Leave[]      @relation("LeaveManager")
 
@@ -102,6 +100,10 @@ model Membership {
   user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
   company   Company    @relation(fields: [companyId], references: [id], onDelete: Cascade)
 
+  
+  leaves        Leave[]
+  leaveBalances LeaveBalance[]
+
   @@unique([userId, companyId])
   @@map("membership")
 }
@@ -129,38 +131,40 @@ model LeaveType {
 }
 
 model LeaveBalance {
-  id          String     @id @default(uuid())
-  userId      String
-  leaveTypeId String
-  balance     Float
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
+  id            String     @id @default(uuid())
+  membershipId  String     // 👈
+  leaveTypeId   String
+  balance       Float
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
 
-  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  leaveType   LeaveType  @relation(fields: [leaveTypeId], references: [id], onDelete: Cascade)
+  membership    Membership @relation(fields: [membershipId], references: [id], onDelete: Cascade)
+  leaveType     LeaveType  @relation(fields: [leaveTypeId], references: [id], onDelete: Cascade)
 
-  @@unique([userId, leaveTypeId])
+  @@unique([membershipId, leaveTypeId])
   @@map("leave_balance")
 }
 
+
 model Leave {
-  id          String       @id @default(uuid())
-  userId      String
-  leaveTypeId String
-  managerId   String?
-  startDate   DateTime
-  endDate     DateTime
-  status      LeaveStatus  @default(PENDING)
-  reason      String?
-  managerNote String?
-  reviewedAt  DateTime?
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
+  id            String       @id @default(uuid())
+  membershipId  String       // 👈 Lien vers Membership
+  leaveTypeId   String
+  managerId     String?
+  startDate     DateTime
+  endDate       DateTime
+  status        LeaveStatus  @default(PENDING)
+  reason        String?
+  managerNote   String?
+  reviewedAt    DateTime?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
 
-  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  leaveType   LeaveType    @relation(fields: [leaveTypeId], references: [id], onDelete: Cascade)
-  manager     User?        @relation("LeaveManager", fields: [managerId], references: [id])
+  membership    Membership   @relation(fields: [membershipId], references: [id], onDelete: Cascade)
+  leaveType     LeaveType    @relation(fields: [leaveTypeId], references: [id], onDelete: Cascade)
+  manager       User?        @relation("LeaveManager", fields: [managerId], references: [id])
 
+  @@index([membershipId])
   @@map("leave")
 }
 
