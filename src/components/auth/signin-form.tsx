@@ -1,7 +1,9 @@
 'use client'
 
 import { zodResolver } from '@hookform/resolvers/zod'
+import { LoaderCircleIcon } from 'lucide-react'
 import Link from 'next/link'
+import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 import { z } from 'zod'
@@ -29,6 +31,8 @@ const formSchema = z.object({
 })
 
 export default function SigninForm() {
+  const [isloading, setIsloading] = useState(false)
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -37,13 +41,15 @@ export default function SigninForm() {
     },
   })
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
+  async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
-      signIn.email({
+      setIsloading(true)
+      await signIn.email({
         email: values.email,
         password: values.password,
         callbackURL: '/',
       })
+      setIsloading(false)
     } catch (error) {
       console.error('Form submission error', error)
       toast.error('Erreur lors de la connexion. Veuillez réessayer.')
@@ -91,8 +97,12 @@ export default function SigninForm() {
           )}
         />
 
-        <Button type='submit' className={'w-full'}>
-          Se connecter
+        <Button type='submit' className={'w-full'} disabled={isloading}>
+          {isloading ? (
+            <LoaderCircleIcon className='animate-spin' />
+          ) : (
+            'Se connecter'
+          )}
         </Button>
       </form>
 

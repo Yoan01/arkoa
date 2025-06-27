@@ -3,6 +3,7 @@ import './globals.css'
 import type { Metadata } from 'next'
 import { Outfit } from 'next/font/google'
 
+import MainLayout from '@/components/layouts/main-layout'
 import { Toaster } from '@/components/ui/sonner'
 
 const outfitSans = Outfit({
@@ -23,7 +24,7 @@ export default function RootLayout({
   return (
     <html lang='en'>
       <body className={`${outfitSans.variable} antialiased`}>
-        {children}
+        <MainLayout>{children}</MainLayout>
         <Toaster />
       </body>
     </html>
