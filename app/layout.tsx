@@ -4,6 +4,7 @@ import type { Metadata } from 'next'
 import { Outfit } from 'next/font/google'
 
 import MainLayout from '@/components/layouts/main-layout'
+import { ThemeProvider } from '@/components/providers/theme-provider'
 import { Toaster } from '@/components/ui/sonner'
 
 const outfitSans = Outfit({
@@ -24,7 +25,14 @@ export default function RootLayout({
   return (
     <html lang='en'>
       <body className={`${outfitSans.variable} antialiased`}>
-        <MainLayout>{children}</MainLayout>
+        <ThemeProvider
+          attribute='class'
+          defaultTheme='system'
+          enableSystem
+          disableTransitionOnChange
+        >
+          <MainLayout>{children}</MainLayout>
+        </ThemeProvider>
         <Toaster />
       </body>
     </html>
