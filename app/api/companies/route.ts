@@ -1,0 +1,50 @@
+import { NextRequest, NextResponse } from 'next/server'
+
+import { requireAuth } from '@/lib/auth-server'
+import { handleApiError } from '@/lib/errors'
+import { prisma } from '@/lib/prisma'
+import { CreateCompanySchema } from '@/schemas/create-company-schema'
+
+export async function GET() {
+  try {
+    const { user } = await requireAuth()
+
+    const memberships = await prisma.membership.findMany({
+      where: { userId: user.id },
+      include: {
+        company: true,
+      },
+    })
+
+    const companies = memberships.map(m => m.company)
+
+    return NextResponse.json(companies, { status: 200 })
+  } catch (error) {
+    return handleApiError(error, 'API:GET_COMPANIES')
+  }
+}
+
+export async function POST(req: NextRequest) {
+  try {
+    const { user } = await requireAuth()
+
+    const json = await req.json()
+    const body = CreateCompanySchema.parse(json)
+
+    const company = await prisma.company.create({
+      data: {
+        name: body.name,
+        memberships: {
+          create: {
+            userId: user.id,
+            role: 'MANAGER',
+          },
+        },
+      },
+    })
+
+    return NextResponse.json(company, { status: 201 })
+  } catch (error) {
+    return handleApiError(error, 'API:CREATE_COMPANY')
+  }
+}

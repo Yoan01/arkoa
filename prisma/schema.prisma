@@ -24,7 +24,6 @@ model User {
   accounts      Account[]
 
   memberships   Membership[]
-
   managedLeaves Leave[]      @relation("LeaveManager")
 
   @@map("user")
@@ -90,19 +89,18 @@ model Company {
 }
 
 model Membership {
-  id        String     @id @default(uuid())
-  userId    String
-  companyId String
-  role      UserRole   @default(EMPLOYEE)
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
+  id             String         @id @default(uuid())
+  userId         String
+  companyId      String
+  role           UserRole       @default(EMPLOYEE)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
 
-  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  company   Company    @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  user           User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  company        Company        @relation(fields: [companyId], references: [id], onDelete: Cascade)
 
-  
-  leaves        Leave[]
-  leaveBalances LeaveBalance[]
+  leaves         Leave[]
+  leaveBalances  LeaveBalance[]
 
   @@unique([userId, companyId])
   @@map("membership")
@@ -117,40 +115,11 @@ enum UserRole {
 // GESTION DES CONGÉS //
 ////////////////////////
 
-model LeaveType {
-  id          String   @id @default(uuid())
-  name        String   @unique
-  description String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  leaves      Leave[]
-  balances    LeaveBalance[]
-
-  @@map("leave_type")
-}
-
-model LeaveBalance {
-  id            String     @id @default(uuid())
-  membershipId  String     // 👈
-  leaveTypeId   String
-  balance       Float
-  createdAt     DateTime   @default(now())
-  updatedAt     DateTime   @updatedAt
-
-  membership    Membership @relation(fields: [membershipId], references: [id], onDelete: Cascade)
-  leaveType     LeaveType  @relation(fields: [leaveTypeId], references: [id], onDelete: Cascade)
-
-  @@unique([membershipId, leaveTypeId])
-  @@map("leave_balance")
-}
-
-
 model Leave {
   id            String       @id @default(uuid())
-  membershipId  String       // 👈 Lien vers Membership
-  leaveTypeId   String
+  membershipId  String
   managerId     String?
+  type          LeaveType
   startDate     DateTime
   endDate       DateTime
   status        LeaveStatus  @default(PENDING)
@@ -161,11 +130,27 @@ model Leave {
   updatedAt     DateTime     @updatedAt
 
   membership    Membership   @relation(fields: [membershipId], references: [id], onDelete: Cascade)
-  leaveType     LeaveType    @relation(fields: [leaveTypeId], references: [id], onDelete: Cascade)
   manager       User?        @relation("LeaveManager", fields: [managerId], references: [id])
 
   @@index([membershipId])
   @@map("leave")
+}
+
+enum LeaveType {
+  PAID              // Congés payés (CP)
+  UNPAID            // Congé sans solde
+  RTT               // Réduction du temps de travail
+  SICK              // Maladie
+  MATERNITY         // Maternité
+  PATERNITY         // Paternité
+  PARENTAL          // Parental
+  BEREAVEMENT       // Deuil
+  MARRIAGE          // Mariage
+  MOVING            // Déménagement
+  CHILD_SICK        // Enfant malade
+  TRAINING          // Formation
+  UNJUSTIFIED       // Absence injustifiée
+  ADJUSTMENT        // Ajustement manuel (rachat, report, etc.)
 }
 
 enum LeaveStatus {
@@ -173,4 +158,18 @@ enum LeaveStatus {
   APPROVED
   REJECTED
   CANCELED
+}
+
+model LeaveBalance {
+  id            String      @id @default(uuid())
+  membershipId  String
+  type          LeaveType
+  remainingDays Float
+  updatedAt     DateTime    @updatedAt
+  createdAt     DateTime    @default(now())
+
+  membership    Membership  @relation(fields: [membershipId], references: [id], onDelete: Cascade)
+
+  @@unique([membershipId, type])
+  @@map("leave_balance")
 }
