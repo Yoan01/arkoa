@@ -10,23 +10,27 @@ export class ApiError extends Error {
   }
 }
 
+const isDev = process.env.NODE_ENV !== 'production'
+
 export function handleApiError(error: unknown, context = 'API') {
+  let message = 'Une erreur est survenue.'
+  let status = 500
+
   if (error instanceof ApiError) {
+    message = error.message
+    status = error.status
     console.error(`[${context}]`, error.message)
-    return NextResponse.json({ error: error.message }, { status: error.status })
+  } else if (error instanceof Error) {
+    if (isDev) {
+      message = error.message
+    }
+    console.error(`[${context}]`, error.message)
+  } else {
+    if (isDev) {
+      message = String(error)
+    }
+    console.error(`[${context}] Erreur inconnue`, error)
   }
 
-  if (error instanceof Error) {
-    console.error(`[${context}]`, error.message)
-    return NextResponse.json(
-      { error: 'Une erreur est survenue.' },
-      { status: 500 }
-    )
-  }
-
-  console.error(`[${context}] Erreur inconnue`, error)
-  return NextResponse.json(
-    { error: 'Erreur serveur inconnue.' },
-    { status: 500 }
-  )
+  return NextResponse.json({ error: message }, { status })
 }
