@@ -4,6 +4,7 @@ import type { Metadata } from 'next'
 import { Outfit } from 'next/font/google'
 
 import MainLayout from '@/components/layouts/main-layout'
+import TanstackProvider from '@/components/providers/tanstack-provider'
 import { ThemeProvider } from '@/components/providers/theme-provider'
 import { Toaster } from '@/components/ui/sonner'
 
@@ -25,15 +26,17 @@ export default function RootLayout({
   return (
     <html lang='en' suppressHydrationWarning>
       <body className={`${outfitSans.variable} antialiased`}>
-        <ThemeProvider
-          attribute='class'
-          defaultTheme='system'
-          enableSystem
-          disableTransitionOnChange
-        >
-          <MainLayout>{children}</MainLayout>
-        </ThemeProvider>
-        <Toaster />
+        <TanstackProvider>
+          <ThemeProvider
+            attribute='class'
+            defaultTheme='system'
+            enableSystem
+            disableTransitionOnChange
+          >
+            <MainLayout>{children}</MainLayout>
+          </ThemeProvider>
+          <Toaster />
+        </TanstackProvider>
       </body>
     </html>
   )

@@ -1,4 +1,5 @@
 import { FlatCompat } from '@eslint/eslintrc'
+import pluginQuery from '@tanstack/eslint-plugin-query'
 import eslintConfigPrettier from 'eslint-config-prettier/flat'
 import prettierPlugin from 'eslint-plugin-prettier'
 import simpleImportSort from 'eslint-plugin-simple-import-sort'
@@ -23,8 +24,11 @@ const eslintConfig = [
       prettier: prettierPlugin,
       'simple-import-sort': simpleImportSort,
       'unused-imports': unusedImports,
+      '@tanstack/query': pluginQuery,
     },
     rules: {
+      // @tanstack/query
+      '@tanstack/query/exhaustive-deps': 'error',
       // prettier inline
       'prettier/prettier': [
         'error',

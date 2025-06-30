@@ -2,14 +2,12 @@ import { headers } from 'next/headers'
 
 import { auth as betterAuth } from '@/lib/auth'
 
-// Fonction simple pour récupérer la session
 export async function getAuth() {
   return await betterAuth.api.getSession({
     headers: await headers(),
   })
 }
 
-// Fonction qui vérifie l'authentification
 export async function requireAuth() {
   const auth = await getAuth()
 
@@ -20,8 +18,7 @@ export async function requireAuth() {
   return auth
 }
 
-// Hook personnalisé pour les composants serveur
-export async function useServerSession() {
+export async function getUser() {
   const auth = await getAuth()
 
   return {
