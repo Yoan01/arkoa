@@ -34,6 +34,7 @@ export async function POST(req: NextRequest) {
     const company = await prisma.company.create({
       data: {
         name: body.name,
+        logoUrl: body.logoUrl,
         memberships: {
           create: {
             userId: user.id,
