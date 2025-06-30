@@ -7,16 +7,17 @@ import { UpdateCompanySchema } from '@/schemas/update-company-schema'
 
 export async function GET(
   _req: NextRequest,
-  { params }: { params: { companyId: string } }
+  { params }: { params: Promise<{ companyId: string }> }
 ) {
   try {
+    const { companyId } = await params
     const { user } = await requireAuth()
 
     const membership = await prisma.membership.findUnique({
       where: {
         userId_companyId: {
           userId: user.id,
-          companyId: params.companyId,
+          companyId,
         },
       },
       include: {
@@ -34,11 +35,12 @@ export async function GET(
   }
 }
 
-export async function POST(
+export async function PATCH(
   req: NextRequest,
-  { params }: { params: { companyId: string } }
+  { params }: { params: Promise<{ companyId: string }> }
 ) {
   try {
+    const { companyId } = await params
     const { user } = await requireAuth()
     const json = await req.json()
     const body = UpdateCompanySchema.parse(json)
@@ -47,7 +49,7 @@ export async function POST(
       where: {
         userId_companyId: {
           userId: user.id,
-          companyId: params.companyId,
+          companyId,
         },
       },
     })
@@ -57,7 +59,7 @@ export async function POST(
     }
 
     const updatedCompany = await prisma.company.update({
-      where: { id: params.companyId },
+      where: { id: companyId },
       data: { name: body.name },
     })
 
@@ -69,16 +71,17 @@ export async function POST(
 
 export async function DELETE(
   _req: NextRequest,
-  { params }: { params: { companyId: string } }
+  { params }: { params: Promise<{ companyId: string }> }
 ) {
   try {
+    const { companyId } = await params
     const { user } = await requireAuth()
 
     const membership = await prisma.membership.findUnique({
       where: {
         userId_companyId: {
           userId: user.id,
-          companyId: params.companyId,
+          companyId,
         },
       },
     })
@@ -89,7 +92,7 @@ export async function DELETE(
 
     const membershipCount = await prisma.membership.count({
       where: {
-        companyId: params.companyId,
+        companyId,
       },
     })
 
@@ -104,7 +107,7 @@ export async function DELETE(
     }
 
     await prisma.company.delete({
-      where: { id: params.companyId },
+      where: { id: companyId },
     })
 
     return new NextResponse(null, { status: 204 })

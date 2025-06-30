@@ -7,16 +7,17 @@ import { UpdateMembershipSchema } from '@/schemas/update-membership-schema'
 
 export async function GET(
   _req: NextRequest,
-  { params }: { params: { companyId: string; membershipId: string } }
+  { params }: { params: Promise<{ companyId: string; membershipId: string }> }
 ) {
   try {
+    const { companyId, membershipId } = await params
     const { user } = await requireAuth()
 
     const requester = await prisma.membership.findUnique({
       where: {
         userId_companyId: {
           userId: user.id,
-          companyId: params.companyId,
+          companyId,
         },
       },
     })
@@ -26,11 +27,11 @@ export async function GET(
     }
 
     const membership = await prisma.membership.findUnique({
-      where: { id: params.membershipId },
+      where: { id: membershipId },
       include: { user: true },
     })
 
-    if (!membership || membership.companyId !== params.companyId) {
+    if (!membership || membership.companyId !== companyId) {
       throw new ApiError('Membre non trouvé', 404)
     }
 
@@ -42,9 +43,10 @@ export async function GET(
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: { companyId: string; membershipId: string } }
+  { params }: { params: Promise<{ companyId: string; membershipId: string }> }
 ) {
   try {
+    const { companyId, membershipId } = await params
     const { user } = await requireAuth()
     const body = UpdateMembershipSchema.parse(await req.json())
 
@@ -52,7 +54,7 @@ export async function POST(
       where: {
         userId_companyId: {
           userId: user.id,
-          companyId: params.companyId,
+          companyId,
         },
       },
     })
@@ -62,15 +64,15 @@ export async function POST(
     }
 
     const membership = await prisma.membership.findUnique({
-      where: { id: params.membershipId },
+      where: { id: membershipId },
     })
 
-    if (!membership || membership.companyId !== params.companyId) {
+    if (!membership || membership.companyId !== companyId) {
       throw new ApiError('Membre non trouvé', 404)
     }
 
     const updated = await prisma.membership.update({
-      where: { id: params.membershipId },
+      where: { id: membershipId },
       data: { role: body.role },
     })
 
@@ -82,16 +84,17 @@ export async function POST(
 
 export async function DELETE(
   _req: NextRequest,
-  { params }: { params: { companyId: string; membershipId: string } }
+  { params }: { params: Promise<{ companyId: string; membershipId: string }> }
 ) {
   try {
+    const { companyId, membershipId } = await params
     const { user } = await requireAuth()
 
     const requester = await prisma.membership.findUnique({
       where: {
         userId_companyId: {
           userId: user.id,
-          companyId: params.companyId,
+          companyId,
         },
       },
     })
@@ -101,15 +104,15 @@ export async function DELETE(
     }
 
     const membership = await prisma.membership.findUnique({
-      where: { id: params.membershipId },
+      where: { id: membershipId },
     })
 
-    if (!membership || membership.companyId !== params.companyId) {
+    if (!membership || membership.companyId !== companyId) {
       throw new ApiError('Membre non trouvé', 404)
     }
 
     await prisma.membership.delete({
-      where: { id: params.membershipId },
+      where: { id: membershipId },
     })
 
     return new NextResponse(null, { status: 204 })

@@ -7,13 +7,14 @@ import { UpdateLeaveBalancesSchema } from '@/schemas/update-leave-balances-schem
 
 export async function GET(
   _req: NextRequest,
-  { params }: { params: { membershipId: string } }
+  { params }: { params: Promise<{ membershipId: string }> }
 ) {
   try {
+    const { membershipId } = await params
     const { user } = await requireAuth()
 
     const targetMembership = await prisma.membership.findUnique({
-      where: { id: params.membershipId },
+      where: { id: membershipId },
       include: { company: true },
     })
 
@@ -39,7 +40,7 @@ export async function GET(
 
     const balances = await prisma.leaveBalance.findMany({
       where: {
-        membershipId: params.membershipId,
+        membershipId,
       },
       orderBy: {
         type: 'asc',
@@ -54,9 +55,10 @@ export async function GET(
 
 export async function PUT(
   req: NextRequest,
-  { params }: { params: { companyId: string; membershipId: string } }
+  { params }: { params: Promise<{ companyId: string; membershipId: string }> }
 ) {
   try {
+    const { companyId, membershipId } = await params
     const { user } = await requireAuth()
     const { balances } = UpdateLeaveBalancesSchema.parse(await req.json())
 
@@ -65,7 +67,7 @@ export async function PUT(
       where: {
         userId_companyId: {
           userId: user.id,
-          companyId: params.companyId,
+          companyId,
         },
       },
     })
@@ -79,10 +81,10 @@ export async function PUT(
 
     // Vérifie que le membre appartient à la même entreprise
     const targetMembership = await prisma.membership.findUnique({
-      where: { id: params.membershipId },
+      where: { id: membershipId },
     })
 
-    if (!targetMembership || targetMembership.companyId !== params.companyId) {
+    if (!targetMembership || targetMembership.companyId !== companyId) {
       throw new ApiError(
         'Ce membre ne fait pas partie de cette entreprise',
         403
@@ -94,7 +96,7 @@ export async function PUT(
         prisma.leaveBalance.upsert({
           where: {
             membershipId_type: {
-              membershipId: params.membershipId,
+              membershipId,
               type: balance.type,
             },
           },
@@ -102,7 +104,7 @@ export async function PUT(
             remainingDays: balance.remainingDays,
           },
           create: {
-            membershipId: params.membershipId,
+            membershipId,
             type: balance.type,
             remainingDays: balance.remainingDays,
           },

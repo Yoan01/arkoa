@@ -7,13 +7,14 @@ import { CreateLeaveSchema } from '@/schemas/create-leave-schema'
 
 export async function GET(
   _req: NextRequest,
-  { params }: { params: { membershipId: string } }
+  { params }: { params: Promise<{ membershipId: string }> }
 ) {
   try {
+    const { membershipId } = await params
     const { user } = await requireAuth()
 
     const membership = await prisma.membership.findUnique({
-      where: { id: params.membershipId },
+      where: { id: membershipId },
     })
 
     if (!membership || membership.userId !== user.id) {
@@ -22,7 +23,7 @@ export async function GET(
 
     const leaves = await prisma.leave.findMany({
       where: {
-        membershipId: params.membershipId,
+        membershipId,
       },
       orderBy: {
         startDate: 'desc',
@@ -37,15 +38,16 @@ export async function GET(
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: { membershipId: string } }
+  { params }: { params: Promise<{ membershipId: string }> }
 ) {
   try {
+    const { membershipId } = await params
     const { user } = await requireAuth()
     const json = await req.json()
     const body = CreateLeaveSchema.parse(json)
 
     const membership = await prisma.membership.findUnique({
-      where: { id: params.membershipId },
+      where: { id: membershipId },
     })
 
     if (!membership || membership.userId !== user.id) {

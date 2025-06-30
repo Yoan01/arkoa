@@ -9,9 +9,16 @@ export async function POST(
   req: NextRequest,
   {
     params,
-  }: { params: { companyId: string; membershipId: string; leaveId: string } }
+  }: {
+    params: Promise<{
+      companyId: string
+      membershipId: string
+      leaveId: string
+    }>
+  }
 ) {
   try {
+    const { membershipId, companyId, leaveId } = await params
     const { user } = await requireAuth()
     const body = UpdateLeaveSchema.parse(await req.json())
 
@@ -20,7 +27,7 @@ export async function POST(
       where: {
         userId_companyId: {
           userId: user.id,
-          companyId: params.companyId,
+          companyId,
         },
       },
     })
@@ -31,15 +38,15 @@ export async function POST(
 
     // Récupération du congé
     const leave = await prisma.leave.findUnique({
-      where: { id: params.leaveId },
+      where: { id: leaveId },
       include: { membership: true },
     })
 
-    if (!leave || leave.membershipId !== params.membershipId) {
+    if (!leave || leave.membershipId !== membershipId) {
       throw new ApiError('Congé introuvable', 404)
     }
 
-    if (leave.membership.companyId !== params.companyId) {
+    if (leave.membership.companyId !== companyId) {
       throw new ApiError("Le congé n'appartient pas à cette entreprise", 403)
     }
 
@@ -78,16 +85,23 @@ export async function DELETE(
   _req: NextRequest,
   {
     params,
-  }: { params: { companyId: string; membershipId: string; leaveId: string } }
+  }: {
+    params: Promise<{
+      companyId: string
+      membershipId: string
+      leaveId: string
+    }>
+  }
 ) {
   try {
+    const { companyId, leaveId, membershipId } = await params
     const { user } = await requireAuth()
 
     const requester = await prisma.membership.findUnique({
       where: {
         userId_companyId: {
           userId: user.id,
-          companyId: params.companyId,
+          companyId,
         },
       },
     })
@@ -97,15 +111,15 @@ export async function DELETE(
     }
 
     const leave = await prisma.leave.findUnique({
-      where: { id: params.leaveId },
+      where: { id: leaveId },
       include: { membership: true },
     })
 
-    if (!leave || leave.membershipId !== params.membershipId) {
+    if (!leave || leave.membershipId !== membershipId) {
       throw new ApiError('Congé introuvable', 404)
     }
 
-    if (leave.membership.companyId !== params.companyId) {
+    if (leave.membership.companyId !== companyId) {
       throw new ApiError("Le congé n'appartient pas à cette entreprise", 403)
     }
 

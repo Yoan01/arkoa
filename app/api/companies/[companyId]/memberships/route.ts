@@ -7,16 +7,17 @@ import { InviteMemberSchema } from '@/schemas/invite-member-schema'
 
 export async function GET(
   _req: NextRequest,
-  { params }: { params: { companyId: string } }
+  { params }: { params: Promise<{ companyId: string }> }
 ) {
   try {
+    const { companyId } = await params
     const { user } = await requireAuth()
 
     const currentMembership = await prisma.membership.findUnique({
       where: {
         userId_companyId: {
           userId: user.id,
-          companyId: params.companyId,
+          companyId,
         },
       },
     })
@@ -27,7 +28,7 @@ export async function GET(
 
     const memberships = await prisma.membership.findMany({
       where: {
-        companyId: params.companyId,
+        companyId,
       },
       include: {
         user: {
@@ -48,9 +49,10 @@ export async function GET(
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: { companyId: string } }
+  { params }: { params: Promise<{ companyId: string }> }
 ) {
   try {
+    const { companyId } = await params
     const { user } = await requireAuth()
     const json = await req.json()
     const body = InviteMemberSchema.parse(json)
@@ -59,7 +61,7 @@ export async function POST(
       where: {
         userId_companyId: {
           userId: user.id,
-          companyId: params.companyId,
+          companyId,
         },
       },
     })
@@ -85,7 +87,7 @@ export async function POST(
       where: {
         userId_companyId: {
           userId: existingUser.id,
-          companyId: params.companyId,
+          companyId,
         },
       },
     })
@@ -100,7 +102,7 @@ export async function POST(
     const newMembership = await prisma.membership.create({
       data: {
         userId: existingUser.id,
-        companyId: params.companyId,
+        companyId,
         role: body.role,
       },
     })

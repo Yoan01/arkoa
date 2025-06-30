@@ -7,9 +7,10 @@ import { ReviewLeaveSchema } from '@/schemas/review-leave-schema'
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: { companyId: string; leaveId: string } }
+  { params }: { params: Promise<{ companyId: string; leaveId: string }> }
 ) {
   try {
+    const { companyId, leaveId } = await params
     const { user } = await requireAuth()
     const body = ReviewLeaveSchema.parse(await req.json())
 
@@ -17,7 +18,7 @@ export async function POST(
       where: {
         userId_companyId: {
           userId: user.id,
-          companyId: params.companyId,
+          companyId,
         },
       },
     })
@@ -27,13 +28,13 @@ export async function POST(
     }
 
     const leave = await prisma.leave.findUnique({
-      where: { id: params.leaveId },
+      where: { id: leaveId },
       include: {
         membership: true,
       },
     })
 
-    if (!leave || leave.membership.companyId !== params.companyId) {
+    if (!leave || leave.membership.companyId !== companyId) {
       throw new ApiError('Congé introuvable ou non lié à cette entreprise', 404)
     }
 

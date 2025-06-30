@@ -6,9 +6,10 @@ import { prisma } from '@/lib/prisma'
 
 export async function GET(
   _req: NextRequest,
-  { params }: { params: { companyId: string } }
+  { params }: { params: Promise<{ companyId: string }> }
 ) {
   try {
+    const { companyId } = await params
     const { user } = await requireAuth()
 
     // Vérifie que l'utilisateur est bien membre de l'entreprise
@@ -16,7 +17,7 @@ export async function GET(
       where: {
         userId_companyId: {
           userId: user.id,
-          companyId: params.companyId,
+          companyId,
         },
       },
     })
@@ -29,7 +30,7 @@ export async function GET(
     const leaves = await prisma.leave.findMany({
       where: {
         membership: {
-          companyId: params.companyId,
+          companyId,
         },
         status: 'APPROVED',
       },
