@@ -26,21 +26,14 @@ export async function GET(
     }
 
     const leaves = await prisma.leave.findMany({
-      where: {
-        membership: {
-          companyId,
-        },
+      where: { membership: { companyId } },
+      select: {
+        id: true,
+        startDate: true,
+        endDate: true,
+        membership: { select: { user: { select: { id: true, name: true } } } },
       },
-      include: {
-        membership: {
-          include: {
-            user: true,
-          },
-        },
-      },
-      orderBy: {
-        startDate: 'desc',
-      },
+      orderBy: { startDate: 'desc' },
     })
 
     return NextResponse.json(leaves, { status: 200 })
