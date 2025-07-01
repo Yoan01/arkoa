@@ -1,7 +1,7 @@
 'use client'
 
 import { ChevronsUpDownIcon, Trash2Icon } from 'lucide-react'
-import { useState } from 'react'
+import { toast } from 'sonner'
 
 import { Button } from '@/components/ui/button'
 import {
@@ -13,7 +13,9 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { SidebarMenuButton, useSidebar } from '@/components/ui/sidebar'
-import { useCompanies } from '@/hooks/api/companies'
+import { useGetCompanies } from '@/hooks/api/companies/get-companies'
+import { useGetActiveCompany } from '@/hooks/api/users/get-active-company'
+import { useSetActiveCompany } from '@/hooks/api/users/set-active-company'
 import { useSession } from '@/lib/auth-client'
 import { cn } from '@/lib/utils'
 
@@ -22,9 +24,10 @@ import { DialogAction } from '../ui/dialog-action'
 import { Logo } from '../ui/logo'
 
 export function NavCompany() {
-  const { data: companies } = useCompanies()
+  const { data: companies } = useGetCompanies()
+  const { data: activeCompany } = useGetActiveCompany()
+  const setActiveCompany = useSetActiveCompany()
   const { state, isMobile } = useSidebar()
-  const [currentCompany, setCurrentCompany] = useState(companies?.[0])
   const { data } = useSession()
 
   return (
@@ -54,7 +57,7 @@ export function NavCompany() {
                   'transition-all',
                   state === 'collapsed' ? 'size-4' : 'size-5'
                 )}
-                logoUrl={currentCompany?.logoUrl || undefined}
+                logoUrl={activeCompany?.logoUrl || undefined}
               />
             </div>
             <div
@@ -64,7 +67,7 @@ export function NavCompany() {
               )}
             >
               <p className='text-sm leading-none font-medium'>
-                {currentCompany?.name ?? 'Ajouter entreprise'}
+                {activeCompany?.name ?? 'Ajouter entreprise'}
               </p>
             </div>
           </div>
@@ -83,14 +86,21 @@ export function NavCompany() {
           Entreprise
         </DropdownMenuLabel>
         {companies?.map(company => (
-          <div className='flex flex-row justify-between' key={company.name}>
+          <div className='flex flex-row justify-between' key={company.id}>
             <DropdownMenuItem
               onClick={async () => {
-                setCurrentCompany(company)
+                if (activeCompany?.id === company.id) return
+                await setActiveCompany.mutateAsync(
+                  { membershipId: company.membershipId },
+                  {
+                    onError: error => {
+                      toast.error(error.message)
+                    },
+                  }
+                )
               }}
               className='w-full gap-2 p-2'
             >
-              <div className='flex flex-col gap-4'>{company.name}</div>
               <div className='flex size-6 items-center justify-center rounded-sm border'>
                 <Logo
                   className={cn(
@@ -100,8 +110,9 @@ export function NavCompany() {
                   logoUrl={company.logoUrl ?? undefined}
                 />
               </div>
+              <div className='flex flex-col gap-4'>{company.name}</div>
             </DropdownMenuItem>
-            {true && ( // TODO: check if is manager
+            {company.isManager && (
               <div className='flex items-center gap-2'>
                 <AddCompanyDialog companyId={company.id} />
                 <DialogAction

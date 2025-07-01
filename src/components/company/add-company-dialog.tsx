@@ -1,5 +1,4 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useMutation } from '@tanstack/react-query'
 import { PenBoxIcon, Plus } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
@@ -25,11 +24,15 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
-import { useCompany } from '@/hooks/api/companies'
+import { useCreateCompany } from '@/hooks/api/companies/create-company'
+import { useGetCompany } from '@/hooks/api/companies/get-company'
+import { cn } from '@/lib/utils'
 import {
   CreateCompanyInput,
   CreateCompanySchema,
 } from '@/schemas/create-company-schema'
+
+import { sidebarMenuButtonVariants } from '../ui/sidebar'
 
 interface Props {
   companyId?: string
@@ -38,36 +41,8 @@ interface Props {
 
 export function AddCompanyDialog({ companyId }: Props) {
   const [open, setOpen] = useState(false)
-  const { data: company } = useCompany(companyId ?? '')
-  const createCompany = useMutation({
-    mutationFn: async (data: CreateCompanyInput) => {
-      const res = await fetch('/api/companies', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify(data),
-      })
-
-      if (!res.ok) {
-        const errorData = await res.json()
-        throw new Error(errorData.error || 'Erreur serveur')
-      }
-
-      return res.json()
-    },
-    onSuccess() {
-      form.reset()
-      toast.success(`Votre entreprise a bien été créé`)
-      setOpen(false)
-    },
-    onError(error) {
-      toast.error("Erreur lors de la création de l'entreprise", {
-        description: error.message,
-      })
-    },
-  })
+  const { data: company } = useGetCompany(companyId ?? '')
+  const createCompany = useCreateCompany()
 
   const form = useForm<CreateCompanyInput>({
     resolver: zodResolver(CreateCompanySchema),
@@ -87,22 +62,40 @@ export function AddCompanyDialog({ companyId }: Props) {
   }, [company, form])
 
   const onSubmit = async (values: CreateCompanyInput) => {
-    await createCompany.mutateAsync({
-      name: values.name,
-      logoUrl: values.logoUrl || '',
-    })
+    await createCompany.mutateAsync(
+      {
+        name: values.name,
+        logoUrl: values.logoUrl || '',
+      },
+      {
+        onSuccess() {
+          form.reset()
+          toast.success(`Votre entreprise a bien été créé`)
+          setOpen(false)
+        },
+        onError(error) {
+          toast.error("Erreur lors de la création de l'entreprise", {
+            description: error.message,
+          })
+        },
+      }
+    )
   }
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         {companyId ? (
-          <DropdownMenuItem
-            className='group cursor-pointer hover:bg-blue-500/10'
-            onSelect={e => e.preventDefault()}
+          <Button
+            variant='ghost'
+            size='icon'
+            className={cn(
+              sidebarMenuButtonVariants({ variant: 'default' }),
+              'size-10'
+            )}
           >
-            <PenBoxIcon className='text-primary size-3.5 group-hover:text-blue-500' />
-          </DropdownMenuItem>
+            <PenBoxIcon className='text-primary' />
+          </Button>
         ) : (
           <DropdownMenuItem
             className='gap-2 p-2'

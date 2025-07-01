@@ -9,7 +9,7 @@ import {
   SidebarMenu,
   SidebarMenuItem,
 } from '@/components/ui/sidebar'
-import { useCompanies } from '@/hooks/api/companies'
+import { useGetCompanies } from '@/hooks/api/companies/get-companies'
 import { appSidebarDocs, appSidebarNav } from '@/lib/constants'
 
 import { NavCompany } from './nav-company'
@@ -18,10 +18,10 @@ import { NavMain } from './nav-main'
 import { NavUser } from './nav-user'
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const { data } = useCompanies()
+  const { data } = useGetCompanies()
 
   return (
-    <Sidebar collapsible='offcanvas' {...props}>
+    <Sidebar collapsible='icon' {...props}>
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
