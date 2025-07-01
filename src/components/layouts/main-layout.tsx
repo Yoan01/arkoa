@@ -5,7 +5,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import { useEffect } from 'react'
 import { ReactNode } from 'react'
 
-import { useGetCompanies } from '@/hooks/api/companies/get-companies'
+import { useGetActiveCompany } from '@/hooks/api/users/get-active-company'
 import { useSession } from '@/lib/auth-client'
 
 import { AppSidebar } from '../nav/app-sidebar'
@@ -20,7 +20,7 @@ export default function MainLayout({ children }: AuthLayoutProps) {
   const { data, isPending } = useSession()
   const pathname = usePathname()
   const router = useRouter()
-  const { data: companies } = useGetCompanies()
+  const { data: activeCompany } = useGetActiveCompany()
 
   useEffect(() => {
     if (!isPending && !data?.user && !pathname.startsWith('/auth')) {
@@ -44,10 +44,10 @@ export default function MainLayout({ children }: AuthLayoutProps) {
     <SidebarProvider>
       <AppSidebar variant='inset' />
       <SidebarInset>
-        {companies && companies.length > 0 && <SiteHeader />}
+        {activeCompany && <SiteHeader />}
         <div className='flex flex-1 flex-col'>
           <div className='@container/main flex flex-1 flex-col gap-2'>
-            {!companies?.length ? (
+            {!activeCompany ? (
               <div className='flex h-full items-center justify-center text-center'>
                 Vous n'avez encore aucune entreprise. <br />
                 Ajoutez-en une maintenant pour profiter de l'application !
