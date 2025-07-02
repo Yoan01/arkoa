@@ -20,16 +20,9 @@ export async function GET(_req: NextRequest) {
       },
     })
 
-    if (!userWithActiveMembership?.activeMembership) {
-      return new NextResponse('No active membership found', { status: 404 })
-    }
+    const company = userWithActiveMembership?.activeMembership?.company ?? null
 
-    return NextResponse.json(
-      userWithActiveMembership.activeMembership.company,
-      {
-        status: 200,
-      }
-    )
+    return NextResponse.json(company, { status: 200 })
   } catch (error) {
     return handleApiError(error, 'API:GET_ACTIVE_MEMBERSHIP')
   }
@@ -41,7 +34,19 @@ export async function PATCH(req: NextRequest) {
     const json = await req.json()
     const { membershipId } = SetActiveMembershipSchema.parse(json)
 
-    // Vérifie que le membership appartient bien à l'utilisateur connecté
+    // Si on reçoit null → on annule simplement l'entreprise active
+    if (membershipId === null) {
+      await prisma.user.update({
+        where: { id: user.id },
+        data: {
+          activeMembershipId: null,
+        },
+      })
+
+      return NextResponse.json({ success: true }, { status: 200 })
+    }
+
+    // Sinon, vérifie que le membership appartient bien à l'utilisateur connecté
     const membership = await prisma.membership.findUnique({
       where: { id: membershipId },
       select: { userId: true },

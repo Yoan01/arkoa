@@ -9,17 +9,13 @@ import {
   SidebarMenu,
   SidebarMenuItem,
 } from '@/components/ui/sidebar'
-import { useGetCompanies } from '@/hooks/api/companies/get-companies'
-import { appSidebarDocs, appSidebarNav } from '@/lib/constants'
+import { appSidebarNav } from '@/lib/constants'
 
 import { NavCompany } from './nav-company'
-import { NavDocuments } from './nav-documennts'
 import { NavMain } from './nav-main'
 import { NavUser } from './nav-user'
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const { data } = useGetCompanies()
-
   return (
     <Sidebar collapsible='icon' {...props}>
       <SidebarHeader>
@@ -30,12 +26,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        {data && data.length > 0 && (
-          <>
-            <NavMain items={appSidebarNav} />
-            <NavDocuments items={appSidebarDocs} />
-          </>
-        )}
+        <NavMain items={appSidebarNav} />
+        {/* <NavDocuments items={appSidebarDocs} /> */}
       </SidebarContent>
       <SidebarFooter>
         <NavUser />

@@ -13,6 +13,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { SidebarMenuButton, useSidebar } from '@/components/ui/sidebar'
+import { useDeleteCompany } from '@/hooks/api/companies/delete-company'
 import { useGetCompanies } from '@/hooks/api/companies/get-companies'
 import { useGetActiveCompany } from '@/hooks/api/users/get-active-company'
 import { useSetActiveCompany } from '@/hooks/api/users/set-active-company'
@@ -24,12 +25,14 @@ import { DialogAction } from '../ui/dialog-action'
 import { Logo } from '../ui/logo'
 
 export function NavCompany() {
-  const { data: companies } = useGetCompanies()
-  const { data: activeCompany } = useGetActiveCompany()
-  const setActiveCompany = useSetActiveCompany()
   const { state, isMobile } = useSidebar()
   const { data } = useSession()
 
+  const { data: companies } = useGetCompanies()
+  const { data: activeCompany } = useGetActiveCompany()
+
+  const setActiveCompany = useSetActiveCompany()
+  const deleteCompany = useDeleteCompany()
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -116,10 +119,26 @@ export function NavCompany() {
               <div className='flex items-center gap-2'>
                 <AddCompanyDialog companyId={company.id} />
                 <DialogAction
-                  title="Supprimer l'entreprise"
+                  title="Suppression de l'entreprise"
                   description='Êtes-vous sûr de vouloir supprimer cette entreprise ?'
                   onClick={async () => {
-                    // delete company
+                    await deleteCompany.mutateAsync(
+                      { companyId: company.id },
+                      {
+                        onSuccess: data => {
+                          toast.success('Entreprise supprimée')
+                          if (activeCompany?.id === company.id) {
+                            console.log(company)
+                            console.log(data)
+
+                            setActiveCompany.mutate({ membershipId: null })
+                          }
+                        },
+                        onError: error => {
+                          toast.error(error.message)
+                        },
+                      }
+                    )
                   }}
                 >
                   <Button

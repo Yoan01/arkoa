@@ -23,8 +23,16 @@ export function NavMain({
     icon?: LucideIcon
   }[]
 }) {
-  const { data: activeCompany } = useGetActiveCompany()
-  const { data: roleInfo } = useGetCompanyRole(activeCompany?.id)
+  const { data: activeCompany, isFetching: isFetchingCompany } =
+    useGetActiveCompany()
+  const { data: roleInfo, isFetching: isFetchingRole } = useGetCompanyRole(
+    activeCompany?.id
+  )
+
+  if (isFetchingCompany || isFetchingRole || !activeCompany) {
+    return null
+  }
+
   return (
     <SidebarGroup>
       <SidebarGroupContent className='flex flex-col gap-2'>
