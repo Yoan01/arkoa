@@ -26,6 +26,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { useCreateCompany } from '@/hooks/api/companies/create-company'
 import { useGetCompany } from '@/hooks/api/companies/get-company'
+import { useUpdateCompany } from '@/hooks/api/companies/update-company'
 import { cn } from '@/lib/utils'
 import {
   CreateCompanyInput,
@@ -43,6 +44,7 @@ export function AddCompanyDialog({ companyId }: Props) {
   const [open, setOpen] = useState(false)
   const { data: company } = useGetCompany(companyId ?? '')
   const createCompany = useCreateCompany()
+  const updateCompany = useUpdateCompany()
 
   const form = useForm<CreateCompanyInput>({
     resolver: zodResolver(CreateCompanySchema),
@@ -62,24 +64,46 @@ export function AddCompanyDialog({ companyId }: Props) {
   }, [company, form])
 
   const onSubmit = async (values: CreateCompanyInput) => {
-    await createCompany.mutateAsync(
-      {
-        name: values.name,
-        logoUrl: values.logoUrl || '',
-      },
-      {
-        onSuccess() {
-          form.reset()
-          toast.success(`Votre entreprise a bien été créé`)
-          setOpen(false)
+    if (companyId) {
+      await updateCompany.mutateAsync(
+        {
+          id: companyId,
+          name: values.name,
+          logoUrl: values.logoUrl || '',
         },
-        onError(error) {
-          toast.error("Erreur lors de la création de l'entreprise", {
-            description: error.message,
-          })
+        {
+          onSuccess() {
+            form.reset()
+            toast.success(`Votre entreprise a bien été modifié`)
+            setOpen(false)
+          },
+          onError(error) {
+            toast.error("Erreur lors de la modification de l'entreprise", {
+              description: error.message,
+            })
+          },
+        }
+      )
+    } else {
+      await createCompany.mutateAsync(
+        {
+          name: values.name,
+          logoUrl: values.logoUrl || '',
         },
-      }
-    )
+        {
+          onSuccess() {
+            form.reset()
+            toast.success(`Votre entreprise a bien été créé`)
+            setOpen(false)
+          },
+          onError(error) {
+            toast.error("Erreur lors de la création de l'entreprise", {
+              description: error.message,
+            })
+          },
+        }
+      )
+    }
   }
 
   return (

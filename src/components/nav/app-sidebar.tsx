@@ -9,13 +9,22 @@ import {
   SidebarMenu,
   SidebarMenuItem,
 } from '@/components/ui/sidebar'
-import { appSidebarNav } from '@/lib/constants'
+import { useGetActiveCompany } from '@/hooks/api/users/get-active-company'
+import { useGetCompanyRole } from '@/hooks/api/users/get-company-role'
+import { UserCompanyRoleInput } from '@/schemas/queries/company-role-schema'
 
 import { NavCompany } from './nav-company'
 import { NavMain } from './nav-main'
+import { NavManagers } from './nav-managers'
 import { NavUser } from './nav-user'
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const { data: activeCompany, isFetching: isFetchingCompany } =
+    useGetActiveCompany()
+  const { data: roleInfo, isFetching: isFetchingRole } = useGetCompanyRole(
+    activeCompany?.id
+  )
+
   return (
     <Sidebar collapsible='icon' {...props}>
       <SidebarHeader>
@@ -26,8 +35,15 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={appSidebarNav} />
-        {/* <NavDocuments items={appSidebarDocs} /> */}
+        {!isFetchingCompany && !isFetchingRole && activeCompany && (
+          <>
+            <NavMain
+              roleInfo={roleInfo as UserCompanyRoleInput}
+              activeCompany={activeCompany}
+            />
+            {roleInfo?.isManager && <NavManagers />}
+          </>
+        )}
       </SidebarContent>
       <SidebarFooter>
         <NavUser />

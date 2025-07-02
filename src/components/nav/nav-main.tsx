@@ -1,6 +1,6 @@
 'use client'
 
-import { type LucideIcon, PlusCircleIcon } from 'lucide-react'
+import { PlusCircleIcon } from 'lucide-react'
 
 import {
   SidebarGroup,
@@ -9,30 +9,19 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from '@/components/ui/sidebar'
-import { useGetActiveCompany } from '@/hooks/api/users/get-active-company'
-import { useGetCompanyRole } from '@/hooks/api/users/get-company-role'
+import { Company } from '@/generated/prisma'
+import { appSidebarNav } from '@/lib/constants'
+import { UserCompanyRoleInput } from '@/schemas/queries/company-role-schema'
 
 import { InviteUserDialog } from '../company/invite-user-dialog'
 
 export function NavMain({
-  items,
+  roleInfo,
+  activeCompany,
 }: {
-  items: {
-    title: string
-    url: string
-    icon?: LucideIcon
-  }[]
+  roleInfo: UserCompanyRoleInput
+  activeCompany: Company
 }) {
-  const { data: activeCompany, isFetching: isFetchingCompany } =
-    useGetActiveCompany()
-  const { data: roleInfo, isFetching: isFetchingRole } = useGetCompanyRole(
-    activeCompany?.id
-  )
-
-  if (isFetchingCompany || isFetchingRole || !activeCompany) {
-    return null
-  }
-
   return (
     <SidebarGroup>
       <SidebarGroupContent className='flex flex-col gap-2'>
@@ -52,7 +41,7 @@ export function NavMain({
           </SidebarMenuItem>
         </SidebarMenu>
         <SidebarMenu>
-          {items.map(item => (
+          {appSidebarNav.map(item => (
             <SidebarMenuItem key={item.title}>
               <SidebarMenuButton tooltip={item.title}>
                 {item.icon && <item.icon />}

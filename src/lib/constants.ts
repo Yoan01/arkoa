@@ -1,56 +1,40 @@
 import {
-  BarChartIcon,
+  CalendarIcon,
   ClipboardListIcon,
-  DatabaseIcon,
-  FileIcon,
-  FolderIcon,
   LayoutDashboardIcon,
-  ListIcon,
+  ShieldCheckIcon,
   UsersIcon,
 } from 'lucide-react'
 
 export const appSidebarNav = [
   {
-    title: 'Dashboard',
-    url: '#',
+    title: 'Tableau de bord',
+    url: '/dashboard',
     icon: LayoutDashboardIcon,
+    roles: ['EMPLOYEE', 'MANAGER'],
   },
   {
-    title: 'Lifecycle',
-    url: '#',
-    icon: ListIcon,
-  },
-  {
-    title: 'Analytics',
-    url: '#',
-    icon: BarChartIcon,
-  },
-  {
-    title: 'Projects',
-    url: '#',
-    icon: FolderIcon,
-  },
-  {
-    title: 'Team',
-    url: '#',
-    icon: UsersIcon,
+    title: 'Mes congés',
+    url: '/leaves',
+    icon: CalendarIcon,
+    roles: ['EMPLOYEE', 'MANAGER'],
   },
 ]
 
-export const appSidebarDocs = [
+export const appSidebarManager = [
   {
-    name: 'Data Library',
-    url: '#',
-    icon: DatabaseIcon,
+    name: 'Équipe',
+    url: '/team',
+    icon: UsersIcon,
   },
   {
-    name: 'Reports',
-    url: '#',
+    name: 'Demandes à valider',
+    url: '/approvals',
     icon: ClipboardListIcon,
   },
   {
-    name: 'Word Assistant',
-    url: '#',
-    icon: FileIcon,
+    name: 'Gestion RH',
+    url: '/hr',
+    icon: ShieldCheckIcon,
   },
 ]

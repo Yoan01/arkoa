@@ -1,14 +1,16 @@
 'use client'
 
-import { useMutation } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 
-import { Company } from '@/generated/prisma'
+import { UpdateCompanyInput } from '@/schemas/update-company-schema'
 
 export const useUpdateCompany = () => {
+  const queryClient = useQueryClient()
+
   return useMutation({
-    mutationFn: async (data: Company) => {
+    mutationFn: async (data: UpdateCompanyInput) => {
       const res = await fetch(`/api/companies/${data.id}`, {
-        method: 'PUT',
+        method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
         },
@@ -20,6 +22,16 @@ export const useUpdateCompany = () => {
         throw new Error(errorData.error || 'Erreur serveur')
       }
       return res.json()
+    },
+    onSuccess: () => {
+      Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: ['companies'],
+        }),
+        queryClient.invalidateQueries({
+          queryKey: ['active-company'],
+        }),
+      ])
     },
   })
 }
