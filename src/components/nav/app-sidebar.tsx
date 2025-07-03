@@ -9,9 +9,9 @@ import {
   SidebarMenu,
   SidebarMenuItem,
 } from '@/components/ui/sidebar'
-import { useGetActiveCompany } from '@/hooks/api/users/get-active-company'
 import { useGetCompanyRole } from '@/hooks/api/users/get-company-role'
 import { UserCompanyRoleInput } from '@/schemas/queries/company-role-schema'
+import { useCompanyStore } from '@/stores/use-company-store'
 
 import { NavCompany } from './nav-company'
 import { NavMain } from './nav-main'
@@ -19,8 +19,7 @@ import { NavManagers } from './nav-managers'
 import { NavUser } from './nav-user'
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const { data: activeCompany, isFetching: isFetchingCompany } =
-    useGetActiveCompany()
+  const { activeCompany } = useCompanyStore()
   const { data: roleInfo, isFetching: isFetchingRole } = useGetCompanyRole(
     activeCompany?.id
   )
@@ -35,7 +34,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        {!isFetchingCompany && !isFetchingRole && activeCompany && (
+        {!isFetchingRole && activeCompany && (
           <>
             <NavMain
               roleInfo={roleInfo as UserCompanyRoleInput}

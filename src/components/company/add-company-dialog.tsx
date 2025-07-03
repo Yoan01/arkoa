@@ -24,27 +24,28 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
+import { Company } from '@/generated/prisma'
 import { useCreateCompany } from '@/hooks/api/companies/create-company'
-import { useGetCompany } from '@/hooks/api/companies/get-company'
 import { useUpdateCompany } from '@/hooks/api/companies/update-company'
 import { cn } from '@/lib/utils'
 import {
   CreateCompanyInput,
   CreateCompanySchema,
 } from '@/schemas/create-company-schema'
+import { useCompanyStore } from '@/stores/use-company-store'
 
 import { sidebarMenuButtonVariants } from '../ui/sidebar'
 
 interface Props {
-  companyId?: string
+  company?: Company
   children?: React.ReactNode
 }
 
-export function AddCompanyDialog({ companyId }: Props) {
+export function AddCompanyDialog({ company }: Props) {
   const [open, setOpen] = useState(false)
-  const { data: company } = useGetCompany(companyId ?? '')
   const createCompany = useCreateCompany()
   const updateCompany = useUpdateCompany()
+  const { activeCompany, setActiveCompany } = useCompanyStore()
 
   const form = useForm<CreateCompanyInput>({
     resolver: zodResolver(CreateCompanySchema),
@@ -64,17 +65,20 @@ export function AddCompanyDialog({ companyId }: Props) {
   }, [company, form])
 
   const onSubmit = async (values: CreateCompanyInput) => {
-    if (companyId) {
+    if (company) {
       await updateCompany.mutateAsync(
         {
-          id: companyId,
+          id: company.id,
           name: values.name,
           logoUrl: values.logoUrl || '',
         },
         {
-          onSuccess() {
+          onSuccess(data) {
             form.reset()
             toast.success(`Votre entreprise a bien été modifié`)
+            if (activeCompany?.id === company.id) {
+              setActiveCompany(data)
+            }
             setOpen(false)
           },
           onError(error) {
@@ -109,7 +113,7 @@ export function AddCompanyDialog({ companyId }: Props) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        {companyId ? (
+        {company ? (
           <Button
             variant='ghost'
             size='icon'
@@ -133,10 +137,10 @@ export function AddCompanyDialog({ companyId }: Props) {
       <DialogContent className='sm:max-w-[425px]'>
         <DialogHeader>
           <DialogTitle>
-            {companyId ? "Modifier l'entreprise" : 'Ajouter une entreprise'}
+            {company ? "Modifier l'entreprise" : 'Ajouter une entreprise'}
           </DialogTitle>
           <DialogDescription>
-            {companyId
+            {company
               ? "Modifier le nom et le logo de l'entreprise"
               : 'Créer une nouvelle entreprise pour gérer vos projets.'}
           </DialogDescription>
@@ -182,7 +186,7 @@ export function AddCompanyDialog({ companyId }: Props) {
               )}
             />
             <DialogFooter className='mt-4'>
-              <Button type='submit'>{companyId ? 'Modifier' : 'Créer'}</Button>
+              <Button type='submit'>{company ? 'Modifier' : 'Créer'}</Button>
             </DialogFooter>
           </form>
         </Form>

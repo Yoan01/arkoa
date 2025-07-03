@@ -2,6 +2,7 @@
 
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 
+import { Company } from '@/generated/prisma'
 import { UpdateCompanyInput } from '@/schemas/update-company-schema'
 
 export const useUpdateCompany = () => {
@@ -21,7 +22,7 @@ export const useUpdateCompany = () => {
         const errorData = await res.json()
         throw new Error(errorData.error || 'Erreur serveur')
       }
-      return res.json()
+      return res.json() as Promise<Company>
     },
     onSuccess: () => {
       Promise.all([

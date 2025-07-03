@@ -49,7 +49,7 @@ export async function PATCH(req: NextRequest) {
     // Sinon, vérifie que le membership appartient bien à l'utilisateur connecté
     const membership = await prisma.membership.findUnique({
       where: { id: membershipId },
-      select: { userId: true },
+      select: { userId: true, company: true },
     })
 
     if (!membership || membership.userId !== user.id) {
@@ -64,7 +64,7 @@ export async function PATCH(req: NextRequest) {
       },
     })
 
-    return NextResponse.json({ success: true }, { status: 200 })
+    return NextResponse.json(membership.company, { status: 200 })
   } catch (error) {
     return handleApiError(error, 'API:PATCH_ACTIVE_MEMBERSHIP')
   }

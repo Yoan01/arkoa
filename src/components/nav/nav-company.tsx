@@ -15,10 +15,9 @@ import {
 import { SidebarMenuButton, useSidebar } from '@/components/ui/sidebar'
 import { useDeleteCompany } from '@/hooks/api/companies/delete-company'
 import { useGetCompanies } from '@/hooks/api/companies/get-companies'
-import { useGetActiveCompany } from '@/hooks/api/users/get-active-company'
-import { useSetActiveCompany } from '@/hooks/api/users/set-active-company'
 import { useSession } from '@/lib/auth-client'
 import { cn } from '@/lib/utils'
+import { useCompanyStore } from '@/stores/use-company-store'
 
 import { AddCompanyDialog } from '../company/add-company-dialog'
 import { DialogAction } from '../ui/dialog-action'
@@ -29,9 +28,8 @@ export function NavCompany() {
   const { data } = useSession()
 
   const { data: companies } = useGetCompanies()
-  const { data: activeCompany } = useGetActiveCompany()
 
-  const setActiveCompany = useSetActiveCompany()
+  const { activeCompany, setActiveMembership } = useCompanyStore()
   const deleteCompany = useDeleteCompany()
   return (
     <DropdownMenu>
@@ -93,14 +91,7 @@ export function NavCompany() {
             <DropdownMenuItem
               onClick={async () => {
                 if (activeCompany?.id === company.id) return
-                await setActiveCompany.mutateAsync(
-                  { membershipId: company.membershipId },
-                  {
-                    onError: error => {
-                      toast.error(error.message)
-                    },
-                  }
-                )
+                setActiveMembership({ membershipId: company.membershipId })
               }}
               className='w-full gap-2 p-2'
             >
@@ -117,7 +108,7 @@ export function NavCompany() {
             </DropdownMenuItem>
             {company.isManager && (
               <div className='flex items-center gap-2'>
-                <AddCompanyDialog companyId={company.id} />
+                <AddCompanyDialog company={company} />
                 <DialogAction
                   title="Suppression de l'entreprise"
                   description='Êtes-vous sûr de vouloir supprimer cette entreprise ?'
@@ -125,13 +116,10 @@ export function NavCompany() {
                     await deleteCompany.mutateAsync(
                       { companyId: company.id },
                       {
-                        onSuccess: data => {
+                        onSuccess: () => {
                           toast.success('Entreprise supprimée')
                           if (activeCompany?.id === company.id) {
-                            console.log(company)
-                            console.log(data)
-
-                            setActiveCompany.mutate({ membershipId: null })
+                            setActiveMembership({ membershipId: null })
                           }
                         },
                         onError: error => {

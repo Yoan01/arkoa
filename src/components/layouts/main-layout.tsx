@@ -5,8 +5,8 @@ import { usePathname, useRouter } from 'next/navigation'
 import { useEffect } from 'react'
 import { ReactNode } from 'react'
 
-import { useGetActiveCompany } from '@/hooks/api/users/get-active-company'
 import { useSession } from '@/lib/auth-client'
+import { useCompanyStore } from '@/stores/use-company-store'
 
 import { AppSidebar } from '../nav/app-sidebar'
 import { SiteHeader } from '../nav/site-header'
@@ -20,7 +20,11 @@ export default function MainLayout({ children }: AuthLayoutProps) {
   const { data, isPending } = useSession()
   const pathname = usePathname()
   const router = useRouter()
-  const { data: activeCompany } = useGetActiveCompany()
+  const { activeCompany, fetchActiveCompany } = useCompanyStore()
+
+  useEffect(() => {
+    fetchActiveCompany()
+  }, [fetchActiveCompany])
 
   useEffect(() => {
     if (!isPending && !data?.user && !pathname.startsWith('/auth')) {
