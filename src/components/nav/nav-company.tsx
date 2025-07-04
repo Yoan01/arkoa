@@ -29,7 +29,7 @@ export function NavCompany() {
 
   const { data: companies } = useGetCompanies()
 
-  const { activeCompany, setActiveMembership } = useCompanyStore()
+  const { activeCompany, setActiveCompany } = useCompanyStore()
   const deleteCompany = useDeleteCompany()
   return (
     <DropdownMenu>
@@ -91,7 +91,7 @@ export function NavCompany() {
             <DropdownMenuItem
               onClick={async () => {
                 if (activeCompany?.id === company.id) return
-                setActiveMembership({ membershipId: company.membershipId })
+                setActiveCompany(company)
               }}
               className='w-full gap-2 p-2'
             >
@@ -119,7 +119,7 @@ export function NavCompany() {
                         onSuccess: () => {
                           toast.success('Entreprise supprimée')
                           if (activeCompany?.id === company.id) {
-                            setActiveMembership({ membershipId: null })
+                            setActiveCompany(null)
                           }
                         },
                         onError: error => {

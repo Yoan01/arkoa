@@ -26,9 +26,6 @@ model User {
   memberships         Membership[] @relation("AllMemberships")
   managedLeaves       Leave[]      @relation("LeaveManager")
 
-  activeMembershipId  String?
-  activeMembership    Membership?  @relation("ActiveMembership", fields: [activeMembershipId], references: [id])
-
   @@map("user")
 }
 
@@ -101,8 +98,6 @@ model Membership {
   updatedAt      DateTime       @updatedAt
 
   user           User           @relation("AllMemberships", fields: [userId], references: [id], onDelete: Cascade)
-  activeUsers    User[]         @relation("ActiveMembership")
-
   company        Company        @relation(fields: [companyId], references: [id], onDelete: Cascade)
 
   leaves         Leave[]

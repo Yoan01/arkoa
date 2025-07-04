@@ -20,11 +20,7 @@ export default function MainLayout({ children }: AuthLayoutProps) {
   const { data, isPending } = useSession()
   const pathname = usePathname()
   const router = useRouter()
-  const { activeCompany, fetchActiveCompany } = useCompanyStore()
-
-  useEffect(() => {
-    fetchActiveCompany()
-  }, [fetchActiveCompany])
+  const { activeCompany } = useCompanyStore()
 
   useEffect(() => {
     if (!isPending && !data?.user && !pathname.startsWith('/auth')) {

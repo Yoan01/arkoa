@@ -50,28 +50,7 @@ export async function POST(req: NextRequest) {
           },
         },
       },
-      include: {
-        memberships: {
-          where: { userId: user.id },
-        },
-      },
     })
-
-    const membership = company.memberships[0]
-
-    const userRecord = await prisma.user.findUnique({
-      where: { id: user.id },
-      select: { activeMembershipId: true },
-    })
-
-    if (!userRecord?.activeMembershipId) {
-      await prisma.user.update({
-        where: { id: user.id },
-        data: {
-          activeMembershipId: membership.id,
-        },
-      })
-    }
 
     return NextResponse.json(company, { status: 201 })
   } catch (error) {
