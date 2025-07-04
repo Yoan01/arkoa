@@ -30,11 +30,9 @@ export type ModeToggleProps = {
 
 export const ModeToggle = ({ className }: ModeToggleProps) => {
   const { setTheme, theme } = useTheme()
-  console.log(theme)
 
   const [mounted, setMounted] = useState(false)
 
-  // Prevent hydration mismatch
   useEffect(() => {
     setMounted(true)
   }, [])
