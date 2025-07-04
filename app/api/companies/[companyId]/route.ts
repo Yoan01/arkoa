@@ -61,7 +61,11 @@ export async function PATCH(
 
     const updatedCompany = await prisma.company.update({
       where: { id: companyId },
-      data: { name: body.name, logoUrl: body.logoUrl },
+      data: {
+        name: body.name,
+        logoUrl: body.logoUrl,
+        annualLeaveDays: body.annualLeaveDays,
+      },
     })
 
     const returnedCompany = {

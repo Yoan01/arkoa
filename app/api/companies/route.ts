@@ -42,6 +42,7 @@ export async function POST(req: NextRequest) {
       data: {
         name: body.name,
         logoUrl: body.logoUrl,
+        annualLeaveDays: body.annualLeaveDays,
         memberships: {
           create: {
             userId: user.id,

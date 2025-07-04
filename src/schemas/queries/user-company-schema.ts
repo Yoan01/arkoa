@@ -6,6 +6,7 @@ export const UserCompanySchema = z.object({
   id: z.string(),
   name: z.string(),
   logoUrl: z.string().nullable(),
+  annualLeaveDays: z.number(),
   createdAt: z.date(),
   updatedAt: z.date(),
   userMembershipId: z.string(),

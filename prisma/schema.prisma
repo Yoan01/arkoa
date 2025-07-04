@@ -78,11 +78,12 @@ model Verification {
 //////////////////////////
 
 model Company {
-  id          String       @id @default(uuid())
-  name        String       @unique
-  logoUrl     String?
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
+  id                    String       @id @default(uuid())
+  name                  String       @unique
+  logoUrl               String?
+  annualLeaveDays       Int          @default(25)
+  createdAt             DateTime     @default(now())
+  updatedAt             DateTime     @updatedAt
 
   memberships Membership[]
 

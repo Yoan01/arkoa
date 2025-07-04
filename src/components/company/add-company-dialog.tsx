@@ -51,6 +51,7 @@ export function AddCompanyDialog({ company }: Props) {
     defaultValues: {
       name: '',
       logoUrl: '',
+      annualLeaveDays: 25,
     },
   })
 
@@ -59,6 +60,7 @@ export function AddCompanyDialog({ company }: Props) {
       form.reset({
         name: company.name,
         logoUrl: company.logoUrl || '',
+        annualLeaveDays: company.annualLeaveDays ?? 25,
       })
     }
   }, [company, form])
@@ -70,11 +72,12 @@ export function AddCompanyDialog({ company }: Props) {
           id: company.id,
           name: values.name,
           logoUrl: values.logoUrl || '',
+          annualLeaveDays: values.annualLeaveDays,
         },
         {
           onSuccess(data) {
             form.reset()
-            toast.success(`Votre entreprise a bien été modifié`)
+            toast.success(`Votre entreprise a bien été modifiée`)
             if (activeCompany?.id === company.id) {
               setActiveCompany(data)
             }
@@ -92,11 +95,12 @@ export function AddCompanyDialog({ company }: Props) {
         {
           name: values.name,
           logoUrl: values.logoUrl || '',
+          annualLeaveDays: values.annualLeaveDays,
         },
         {
           onSuccess() {
             form.reset()
-            toast.success(`Votre entreprise a bien été créé`)
+            toast.success(`Votre entreprise a bien été créée`)
             setOpen(false)
           },
           onError(error) {
@@ -153,16 +157,12 @@ export function AddCompanyDialog({ company }: Props) {
               control={form.control}
               name='name'
               render={({ field }) => (
-                <FormItem className='tems-center gap-4'>
-                  <FormLabel className='text-right'>Nom</FormLabel>
+                <FormItem>
+                  <FormLabel>Nom</FormLabel>
                   <FormControl>
-                    <Input
-                      placeholder="Nom de l'entreprise"
-                      {...field}
-                      className='col-span-3'
-                    />
+                    <Input placeholder="Nom de l'entreprise" {...field} />
                   </FormControl>
-                  <FormMessage className='' />
+                  <FormMessage />
                 </FormItem>
               )}
             />
@@ -170,17 +170,36 @@ export function AddCompanyDialog({ company }: Props) {
               control={form.control}
               name='logoUrl'
               render={({ field }) => (
-                <FormItem className='gap-4'>
-                  <FormLabel className='text-right'>Logo URL</FormLabel>
+                <FormItem>
+                  <FormLabel>Logo URL</FormLabel>
                   <FormControl>
                     <Input
                       placeholder='https://example.com/logo.png'
                       {...field}
                       value={field.value || ''}
-                      className='col-span-3'
                     />
                   </FormControl>
-                  <FormMessage className='col-span-3 col-start-2' />
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name='annualLeaveDays'
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Jours de congés annuels</FormLabel>
+                  <FormControl>
+                    <Input
+                      type='number'
+                      placeholder='Entrer un nombre...'
+                      {...field}
+                      value={field.value}
+                      onChange={e => field.onChange(e.target.valueAsNumber)}
+                      min={25}
+                    />
+                  </FormControl>
+                  <FormMessage />
                 </FormItem>
               )}
             />
