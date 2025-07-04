@@ -14,7 +14,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog'
-import { DropdownMenuItem } from '@/components/ui/dropdown-menu'
 import {
   Form,
   FormControl,
@@ -37,19 +36,21 @@ import {
   CreateLeaveInput,
   CreateLeaveSchema,
 } from '@/schemas/create-leave-schema'
+import { useCompanyStore } from '@/stores/use-company-store'
 
 import { DateTimePicker } from '../ui/date-time-picker'
 import { Textarea } from '../ui/textarea'
 
 interface Props {
-  companyId: string
-  membershipId: string
   trigger?: React.ReactNode
 }
 
-export function AddLeaveDialog({ companyId, membershipId, trigger }: Props) {
+export function AddLeaveDialog({ trigger }: Props) {
   const [open, setOpen] = useState(false)
   const createLeave = useCreateLeave()
+  const { activeCompany } = useCompanyStore()
+  const companyId = activeCompany?.id ?? ''
+  const membershipId = activeCompany?.userMembershipId ?? ''
 
   const form = useForm<CreateLeaveInput>({
     resolver: zodResolver(CreateLeaveSchema),
@@ -89,13 +90,14 @@ export function AddLeaveDialog({ companyId, membershipId, trigger }: Props) {
         {trigger ? (
           trigger
         ) : (
-          <DropdownMenuItem
-            className='gap-2 p-2'
+          <Button
+            className='gap-2'
+            size={'sm'}
             onSelect={e => e.preventDefault()}
           >
             <Plus className='size-4' />
             Nouvelle demande
-          </DropdownMenuItem>
+          </Button>
         )}
       </DialogTrigger>
       <DialogContent className='sm:max-w-[500px]'>

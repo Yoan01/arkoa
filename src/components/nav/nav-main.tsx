@@ -1,6 +1,7 @@
 'use client'
 
 import { PlusCircleIcon } from 'lucide-react'
+import Link from 'next/link'
 
 import {
   SidebarGroup,
@@ -32,8 +33,6 @@ export function NavMain({
               <InviteUserDialog companyId={activeCompany?.id ?? ''} />
             ) : (
               <AddLeaveDialog
-                companyId={activeCompany?.id ?? ''}
-                membershipId={activeCompany?.userMembershipId ?? ''}
                 trigger={
                   <SidebarMenuButton
                     tooltip='Quick Create'
@@ -50,9 +49,11 @@ export function NavMain({
         <SidebarMenu>
           {appSidebarNav.map(item => (
             <SidebarMenuItem key={item.title}>
-              <SidebarMenuButton tooltip={item.title}>
-                {item.icon && <item.icon />}
-                <span>{item.title}</span>
+              <SidebarMenuButton tooltip={item.title} asChild>
+                <Link href={item.url}>
+                  {item.icon && <item.icon />}
+                  <span>{item.title}</span>
+                </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
           ))}
