@@ -1,16 +1,9 @@
-import { FolderIcon, MoreHorizontalIcon, ShareIcon } from 'lucide-react'
+import { MoreHorizontalIcon } from 'lucide-react'
 
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
 import {
   SidebarGroup,
   SidebarGroupLabel,
   SidebarMenu,
-  SidebarMenuAction,
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
@@ -21,42 +14,15 @@ export function NavManagers() {
   const { isMobile } = useSidebar()
 
   return (
-    <SidebarGroup className='group-data-[collapsible=icon]:hidden'>
+    <SidebarGroup>
       <SidebarGroupLabel>Administration</SidebarGroupLabel>
       <SidebarMenu>
         {appSidebarManager.map(item => (
-          <SidebarMenuItem key={item.name}>
-            <SidebarMenuButton asChild>
-              <a href={item.url}>
-                <item.icon />
-                <span>{item.name}</span>
-              </a>
+          <SidebarMenuItem key={item.title}>
+            <SidebarMenuButton tooltip={item.title}>
+              {item.icon && <item.icon />}
+              <span>{item.title}</span>
             </SidebarMenuButton>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <SidebarMenuAction
-                  showOnHover
-                  className='data-[state=open]:bg-accent rounded-sm'
-                >
-                  <MoreHorizontalIcon />
-                  <span className='sr-only'>More</span>
-                </SidebarMenuAction>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent
-                className='w-24 rounded-lg'
-                side={isMobile ? 'bottom' : 'right'}
-                align={isMobile ? 'end' : 'start'}
-              >
-                <DropdownMenuItem>
-                  <FolderIcon />
-                  <span>Open</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <ShareIcon />
-                  <span>Share</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
           </SidebarMenuItem>
         ))}
         <SidebarMenuItem>

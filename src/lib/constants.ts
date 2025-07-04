@@ -11,29 +11,27 @@ export const appSidebarNav = [
     title: 'Tableau de bord',
     url: '/dashboard',
     icon: LayoutDashboardIcon,
-    roles: ['EMPLOYEE', 'MANAGER'],
   },
   {
     title: 'Mes congés',
     url: '/leaves',
     icon: CalendarIcon,
-    roles: ['EMPLOYEE', 'MANAGER'],
   },
 ]
 
 export const appSidebarManager = [
   {
-    name: 'Équipe',
+    title: 'Mon équipe',
     url: '/team',
     icon: UsersIcon,
   },
   {
-    name: 'Demandes à valider',
+    title: 'Demandes à valider',
     url: '/approvals',
     icon: ClipboardListIcon,
   },
   {
-    name: 'Gestion RH',
+    title: 'Gestion RH',
     url: '/hr',
     icon: ShieldCheckIcon,
   },
