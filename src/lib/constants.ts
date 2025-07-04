@@ -9,7 +9,7 @@ import {
 export const appSidebarNav = [
   {
     title: 'Tableau de bord',
-    url: '/dashboard',
+    url: '/',
     icon: LayoutDashboardIcon,
   },
   {
@@ -36,3 +36,11 @@ export const appSidebarManager = [
     icon: ShieldCheckIcon,
   },
 ]
+
+export const routeTitles: Record<string, string> = {
+  '/': 'Tableau de bord',
+  '/leaves': 'Mes congés',
+  '/team': 'Mon équipe',
+  '/approvals': 'Demandes à valider',
+  '/hr': 'Gestion RH',
+}
