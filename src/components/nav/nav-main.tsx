@@ -9,18 +9,19 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from '@/components/ui/sidebar'
-import { Company } from '@/generated/prisma'
 import { appSidebarNav } from '@/lib/constants'
 import { UserCompanyRoleInput } from '@/schemas/queries/company-role-schema'
+import { IActiveCompany } from '@/stores/slices/active-company-slice'
 
 import { InviteUserDialog } from '../company/invite-user-dialog'
+import { AddLeaveDialog } from '../leaves/add-leave-dialog'
 
 export function NavMain({
   roleInfo,
   activeCompany,
 }: {
   roleInfo: UserCompanyRoleInput
-  activeCompany: Company
+  activeCompany: IActiveCompany
 }) {
   return (
     <SidebarGroup>
@@ -30,13 +31,19 @@ export function NavMain({
             {roleInfo?.isManager ? (
               <InviteUserDialog companyId={activeCompany?.id ?? ''} />
             ) : (
-              <SidebarMenuButton
-                tooltip='Quick Create'
-                className='bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground active:bg-primary/90 active:text-primary-foreground min-w-8 duration-200 ease-linear'
-              >
-                <PlusCircleIcon />
-                <span>Quick Create</span>
-              </SidebarMenuButton>
+              <AddLeaveDialog
+                companyId={activeCompany?.id ?? ''}
+                membershipId={activeCompany?.userMembershipId ?? ''}
+                trigger={
+                  <SidebarMenuButton
+                    tooltip='Quick Create'
+                    className='bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground active:bg-primary/90 active:text-primary-foreground min-w-8 duration-200 ease-linear'
+                  >
+                    <PlusCircleIcon />
+                    <span>Quick Create</span>
+                  </SidebarMenuButton>
+                }
+              />
             )}
           </SidebarMenuItem>
         </SidebarMenu>

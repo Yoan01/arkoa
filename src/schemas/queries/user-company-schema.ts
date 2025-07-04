@@ -1,13 +1,15 @@
 import { z } from 'zod'
 
+import { UserRole } from '@/generated/prisma'
+
 export const UserCompanySchema = z.object({
   id: z.string(),
   name: z.string(),
   logoUrl: z.string().nullable(),
   createdAt: z.date(),
   updatedAt: z.date(),
-  membershipId: z.string(),
-  isManager: z.boolean(),
+  userMembershipId: z.string(),
+  userRole: z.nativeEnum(UserRole),
 })
 
 export const UserCompaniesResponseSchema = z.array(UserCompanySchema)

@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-import { UserRole } from '@/generated/prisma'
 import { requireAuth } from '@/lib/auth-server'
 import { handleApiError } from '@/lib/errors'
 import { prisma } from '@/lib/prisma'
@@ -20,8 +19,8 @@ export async function GET() {
 
     const companies = memberships.map(m => ({
       ...m.company,
-      membershipId: m.id,
-      isManager: m.role === UserRole.MANAGER,
+      userMembershipId: m.id,
+      userRole: m.role,
     }))
 
     return NextResponse.json(UserCompaniesResponseSchema.parse(companies), {
@@ -50,9 +49,22 @@ export async function POST(req: NextRequest) {
           },
         },
       },
+      include: {
+        memberships: {
+          where: { userId: user.id },
+        },
+      },
     })
 
-    return NextResponse.json(company, { status: 201 })
+    const userMembership = company.memberships.find(m => m.userId === user.id)
+
+    return NextResponse.json(
+      {
+        ...company,
+        userMembershipId: userMembership?.id ?? null,
+      },
+      { status: 201 }
+    )
   } catch (error) {
     return handleApiError(error, 'API:CREATE_COMPANY')
   }

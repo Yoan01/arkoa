@@ -1,10 +1,14 @@
 import { StateCreator } from 'zustand'
 
-import { Company } from '@/generated/prisma'
+import { Company, UserRole } from '@/generated/prisma'
+
+export type IActiveCompany =
+  | (Company & { userMembershipId: string; userRole: UserRole })
+  | null
 
 type ActiveCompanySlice = {
-  activeCompany: Company | null
-  setActiveCompany: (company: Company | null) => void
+  activeCompany: IActiveCompany
+  setActiveCompany: (company: IActiveCompany) => void
 }
 const activeCompanySlice: StateCreator<ActiveCompanySlice> = set => ({
   activeCompany: null,

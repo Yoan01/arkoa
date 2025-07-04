@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 
+import { LeaveStatus } from '@/generated/prisma'
 import { requireAuth } from '@/lib/auth-server'
 import { ApiError, handleApiError } from '@/lib/errors'
 import { prisma } from '@/lib/prisma'
@@ -58,9 +59,10 @@ export async function POST(
       data: {
         membershipId: membership.id,
         type: body.type,
-        startDate: new Date(body.startDate),
-        endDate: new Date(body.endDate),
+        startDate: body.startDate,
+        endDate: body.endDate,
         reason: body.reason,
+        status: LeaveStatus.PENDING,
       },
     })
 

@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { requireAuth } from '@/lib/auth-server'
 import { ApiError, handleApiError } from '@/lib/errors'
 import { prisma } from '@/lib/prisma'
+import { UserCompanySchema } from '@/schemas/queries/user-company-schema'
 import { UpdateCompanySchema } from '@/schemas/update-company-schema'
 
 export async function GET(
@@ -63,7 +64,15 @@ export async function PATCH(
       data: { name: body.name, logoUrl: body.logoUrl },
     })
 
-    return NextResponse.json(updatedCompany, { status: 200 })
+    const returnedCompany = {
+      ...updatedCompany,
+      userMembershipId: membership.id,
+      userRole: membership.role,
+    }
+
+    return NextResponse.json(UserCompanySchema.parse(returnedCompany), {
+      status: 200,
+    })
   } catch (error) {
     return handleApiError(error, 'API:UPDATE_COMPANY')
   }

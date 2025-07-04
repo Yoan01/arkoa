@@ -38,7 +38,6 @@ import { sidebarMenuButtonVariants } from '../ui/sidebar'
 
 interface Props {
   company?: Company
-  children?: React.ReactNode
 }
 
 export function AddCompanyDialog({ company }: Props) {

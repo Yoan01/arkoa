@@ -1,6 +1,7 @@
 'use client'
 
 import { ChevronsUpDownIcon, Trash2Icon } from 'lucide-react'
+import { useEffect } from 'react'
 import { toast } from 'sonner'
 
 import { Button } from '@/components/ui/button'
@@ -13,6 +14,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { SidebarMenuButton, useSidebar } from '@/components/ui/sidebar'
+import { UserRole } from '@/generated/prisma'
 import { useDeleteCompany } from '@/hooks/api/companies/delete-company'
 import { useGetCompanies } from '@/hooks/api/companies/get-companies'
 import { useSession } from '@/lib/auth-client'
@@ -27,10 +29,17 @@ export function NavCompany() {
   const { state, isMobile } = useSidebar()
   const { data } = useSession()
 
-  const { data: companies } = useGetCompanies()
+  const { data: companies, isFetching } = useGetCompanies()
 
   const { activeCompany, setActiveCompany } = useCompanyStore()
   const deleteCompany = useDeleteCompany()
+
+  useEffect(() => {
+    if (!isFetching && (!companies || (companies && companies?.length === 0))) {
+      setActiveCompany(null)
+    }
+  }, [companies, setActiveCompany, isFetching])
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -106,7 +115,7 @@ export function NavCompany() {
               </div>
               <div className='flex flex-col gap-4'>{company.name}</div>
             </DropdownMenuItem>
-            {company.isManager && (
+            {company.userRole === UserRole.MANAGER && (
               <div className='flex items-center gap-2'>
                 <AddCompanyDialog company={company} />
                 <DialogAction

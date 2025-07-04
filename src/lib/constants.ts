@@ -44,3 +44,20 @@ export const routeTitles: Record<string, string> = {
   '/approvals': 'Demandes à valider',
   '/hr': 'Gestion RH',
 }
+
+export const leaveTypesLabels = [
+  { value: 'PAID', label: 'Congés payés (CP)' },
+  { value: 'UNPAID', label: 'Congé sans solde' },
+  { value: 'RTT', label: 'Réduction du temps de travail' },
+  { value: 'SICK', label: 'Maladie' },
+  { value: 'MATERNITY', label: 'Maternité' },
+  { value: 'PATERNITY', label: 'Paternité' },
+  { value: 'PARENTAL', label: 'Parental' },
+  { value: 'BEREAVEMENT', label: 'Deuil' },
+  { value: 'MARRIAGE', label: 'Mariage' },
+  { value: 'MOVING', label: 'Déménagement' },
+  { value: 'CHILD_SICK', label: 'Enfant malade' },
+  { value: 'TRAINING', label: 'Formation' },
+  { value: 'UNJUSTIFIED', label: 'Absence injustifiée' },
+  { value: 'ADJUSTMENT', label: 'Ajustement manuel' },
+]

@@ -34,7 +34,7 @@ export function NavUser({}) {
   const router = useRouter()
   const { data } = useSession()
 
-  if (!data?.user) {
+  if (!data) {
     return null
   }
 

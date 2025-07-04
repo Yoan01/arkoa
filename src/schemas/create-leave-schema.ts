@@ -4,8 +4,8 @@ import { LeaveType } from '@/generated/prisma'
 
 export const CreateLeaveSchema = z.object({
   type: z.nativeEnum(LeaveType),
-  startDate: z.string().datetime(),
-  endDate: z.string().datetime(),
+  startDate: z.date(),
+  endDate: z.date(),
   reason: z.string().optional(),
 })
 
