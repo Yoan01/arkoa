@@ -14,7 +14,7 @@ const outfitSans = Outfit({
 })
 
 export const metadata: Metadata = {
-  title: 'Arkoa – La gestion des congés, simplifiée',
+  title: 'Arkoa',
   description:
     'Arkoa est une application web dédiée aux entreprises pour simplifier les demandes et la gestion des congés.',
   keywords: [

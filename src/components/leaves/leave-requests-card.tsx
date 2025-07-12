@@ -4,11 +4,15 @@ import React from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
 
-export const LeaveRequestsCard: React.FC = ({}) => {
+export const LeaveRequestsCard: React.FC = () => {
   const pendingRequests = 3
-  const totalRequests = 8
-  const approvedRequests = 4
-  const progressPercentage = (pendingRequests / totalRequests) * 100
+  const approvedRequests = 5
+  const rejectedRequests = 2
+  const canceledRequests = 1
+  const totalRequests =
+    pendingRequests + approvedRequests + rejectedRequests + canceledRequests
+
+  const approvedPercentage = (approvedRequests / totalRequests) * 100
 
   return (
     <Card className='shadow-sm transition-shadow hover:shadow-md'>
@@ -21,23 +25,36 @@ export const LeaveRequestsCard: React.FC = ({}) => {
           <Clock className='h-4 w-4 text-gray-400' />
         </div>
 
-        <div className='space-y-3'>
-          <div className='text-3xl font-bold text-orange-400'>
-            {pendingRequests} demandes
-          </div>
-
-          {/* Barre de progression */}
-          <div className='space-y-2'>
-            <div className='flex justify-between text-sm'>
-              <span>Approuvées: {approvedRequests} demandes</span>
-              <span>{totalRequests} demandes total</span>
+        <div className='mb-4 grid grid-cols-2 gap-4 text-center text-sm sm:grid-cols-4'>
+          <div>
+            <div className='text-lg font-bold text-orange-400'>
+              {pendingRequests}
             </div>
-            <Progress
-              variant='orange'
-              value={progressPercentage}
-              className='h-2'
-            />
+            <div>En attente</div>
           </div>
+          <div>
+            <div className='text-primary text-lg font-bold'>
+              {approvedRequests}
+            </div>
+            <div>Approuvées</div>
+          </div>
+          <div>
+            <div className='text-lg font-bold text-red-500'>
+              {rejectedRequests}
+            </div>
+            <div>Rejetées</div>
+          </div>
+          <div>
+            <div className='text-lg font-bold'>{canceledRequests}</div>
+            <div>Annulées</div>
+          </div>
+        </div>
+
+        <div className='space-y-1'>
+          <Progress value={approvedPercentage} className='h-2' />
+          <p className='text-center text-xs text-gray-500'>
+            {Math.round(approvedPercentage)}% des demandes approuvées
+          </p>
         </div>
       </CardContent>
     </Card>
