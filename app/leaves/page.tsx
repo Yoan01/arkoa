@@ -10,18 +10,6 @@ export default function Leaves() {
         <Card>
           <CardHeader className='pb-2'>
             <CardTitle className='text-sm font-medium'>
-              Congés utilisés
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className='text-2xl font-bold'>4.5 jours</div>
-            <p className='text-xs'>depuis janvier 2024</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className='pb-2'>
-            <CardTitle className='text-sm font-medium'>
               Demandes en attente
             </CardTitle>
           </CardHeader>

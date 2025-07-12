@@ -1,0 +1,177 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+//////////////////////
+// AUTHENTIFICATION //
+//////////////////////
+
+model User {
+  id            String    @id
+  name          String
+  email         String    @unique
+  emailVerified Boolean
+  image         String?
+  createdAt     DateTime
+  updatedAt     DateTime
+  sessions      Session[]
+  accounts      Account[]
+
+  memberships   Membership[] @relation("AllMemberships")
+  managedLeaves Leave[]      @relation("LeaveManager")
+
+  @@map("user")
+}
+
+model Session {
+  id        String   @id
+  expiresAt DateTime
+  token     String   @unique
+  createdAt DateTime
+  updatedAt DateTime
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("session")
+}
+
+model Account {
+  id                    String    @id
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime
+  updatedAt             DateTime
+
+  @@map("account")
+}
+
+model Verification {
+  id         String    @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime?
+  updatedAt  DateTime?
+
+  @@map("verification")
+}
+
+//////////////////////////
+// STRUCTURE D'ENTREPRISE //
+//////////////////////////
+
+model Company {
+  id              String   @id @default(uuid())
+  name            String   @unique
+  logoUrl         String?
+  annualLeaveDays Int      @default(25)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  memberships Membership[]
+
+  @@map("company")
+}
+
+model Membership {
+  id        String   @id @default(uuid())
+  userId    String
+  companyId String
+  role      UserRole @default(EMPLOYEE)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user    User    @relation("AllMemberships", fields: [userId], references: [id], onDelete: Cascade)
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  leaves        Leave[]
+  leaveBalances LeaveBalance[]
+
+  @@unique([userId, companyId])
+  @@map("membership")
+}
+
+enum UserRole {
+  EMPLOYEE
+  MANAGER
+}
+
+////////////////////////
+// GESTION DES CONGÉS //
+////////////////////////
+
+model Leave {
+  id           String      @id @default(uuid())
+  membershipId String
+  managerId    String?
+  type         LeaveType
+  startDate    DateTime
+  endDate      DateTime
+  status       LeaveStatus @default(PENDING)
+  reason       String?
+  managerNote  String?
+  reviewedAt   DateTime?
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  membership Membership @relation(fields: [membershipId], references: [id], onDelete: Cascade)
+  manager    User?      @relation("LeaveManager", fields: [managerId], references: [id])
+
+  @@index([membershipId])
+  @@map("leave")
+}
+
+enum LeaveType {
+  PAID // Congés payés (CP)
+  UNPAID // Congé sans solde
+  RTT // Réduction du temps de travail
+  SICK // Maladie
+  MATERNITY // Maternité
+  PATERNITY // Paternité
+  PARENTAL // Parental
+  BEREAVEMENT // Deuil
+  MARRIAGE // Mariage
+  MOVING // Déménagement
+  CHILD_SICK // Enfant malade
+  TRAINING // Formation
+  UNJUSTIFIED // Absence injustifiée
+  ADJUSTMENT // Ajustement manuel (rachat, report, etc.)
+}
+
+enum LeaveStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELED
+}
+
+model LeaveBalance {
+  id            String    @id @default(uuid())
+  membershipId  String
+  type          LeaveType
+  remainingDays Float
+  updatedAt     DateTime  @updatedAt
+  createdAt     DateTime  @default(now())
+
+  membership Membership @relation(fields: [membershipId], references: [id], onDelete: Cascade)
+
+  @@unique([membershipId, type])
+  @@map("leave_balance")
+}
