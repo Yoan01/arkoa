@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-import { LeaveStatus } from '@/generated/prisma'
+import { LeaveStatus, UserRole } from '@/generated/prisma'
 import { requireAuth } from '@/lib/auth-server'
 import { ApiError, handleApiError } from '@/lib/errors'
 import { prisma } from '@/lib/prisma'
@@ -18,7 +18,19 @@ export async function GET(
       where: { id: membershipId },
     })
 
-    if (!membership || membership.userId !== user.id) {
+    const userMembership = await prisma.membership.findUnique({
+      where: {
+        userId_companyId: {
+          userId: user.id,
+          companyId: membership?.companyId ?? '',
+        },
+      },
+    })
+
+    if (
+      userMembership?.role !== UserRole.MANAGER &&
+      (!membership || membership.userId !== user.id)
+    ) {
       throw new ApiError('Accès refusé à ce compte salarié', 403)
     }
 
