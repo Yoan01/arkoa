@@ -31,7 +31,7 @@ import {
 } from '@/components/ui/select'
 import { LeaveType } from '@/generated/prisma'
 import { useCreateLeave } from '@/hooks/api/users/create-leave'
-import { leaveTypesLabels } from '@/lib/constants'
+import { leaveTypeLabels } from '@/lib/constants'
 import {
   CreateLeaveInput,
   CreateLeaveSchema,
@@ -167,7 +167,7 @@ export function AddLeaveDialog({ trigger }: Props) {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {leaveTypesLabels.map(({ value, label }) => (
+                      {Object.entries(leaveTypeLabels).map(([value, label]) => (
                         <SelectItem key={value} value={value}>
                           {label}
                         </SelectItem>

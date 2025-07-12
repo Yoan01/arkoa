@@ -57,7 +57,12 @@ export async function POST(
     const { membershipId } = await params
     const { user } = await requireAuth()
     const json = await req.json()
-    const body = CreateLeaveSchema.parse(json)
+    const bodyToValidate = {
+      ...json,
+      startDate: new Date(json.startDate),
+      endDate: new Date(json.endDate),
+    }
+    const body = CreateLeaveSchema.parse(bodyToValidate)
 
     const membership = await prisma.membership.findUnique({
       where: { id: membershipId },

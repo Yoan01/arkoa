@@ -41,7 +41,7 @@ export const useCreateLeave = () => {
 
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({
-        queryKey: ['leaves', variables.membershipId],
+        queryKey: ['leaves', variables.companyId, variables.membershipId],
       })
     },
   })

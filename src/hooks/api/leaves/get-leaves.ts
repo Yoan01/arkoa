@@ -12,7 +12,7 @@ export const useGetLeaves = ({
   membershipId: string
 }) => {
   return useQuery<Leave[]>({
-    queryKey: ['my-leaves', companyId, membershipId],
+    queryKey: ['leaves', companyId, membershipId],
     queryFn: async () => {
       const res = await fetch(
         `/api/companies/${companyId}/memberships/${membershipId}/leaves`,
