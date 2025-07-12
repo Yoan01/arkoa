@@ -45,7 +45,6 @@ export const metadata: Metadata = {
     locale: 'fr_FR',
     type: 'website',
   },
-  viewport: 'width=device-width, initial-scale=1.0',
   robots: {
     index: true,
     follow: true,
