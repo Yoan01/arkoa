@@ -21,7 +21,8 @@ COPY --from=builder /app/package.json ./package.json
 COPY --from=builder /app/pnpm-lock.yaml ./pnpm-lock.yaml
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/src/generated ./src/generated
-
-RUN pnpm install --prod
+COPY --from=builder /app/node_modules ./node_modules
 
 EXPOSE 3000
+
+CMD ["pnpm", "start"]
