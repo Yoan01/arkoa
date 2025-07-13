@@ -1,33 +1,28 @@
-# Étape 1 : Builder
+# Étape 1 : Build
 FROM node:20-alpine AS builder
-
-# Créer le dossier de l'app
 WORKDIR /app
 
-# Copier les fichiers nécessaires
-COPY package.json package-lock.json* ./  
-RUN npm ci
+COPY package.json package-lock.json ./
+RUN npm i
 
-# Copier le reste des fichiers (code source)
 COPY . .
 
-# Construire l'app en standalone
+RUN npx prisma generate
 RUN npm run build
 
-# Étape 2 : Image finale légère
+# Étape 2 : Runner allégé
 FROM node:20-alpine AS runner
-
 WORKDIR /app
 
-# Copier uniquement ce qui est nécessaire depuis le builder
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/.next ./.next
-COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package.json ./package.json
 COPY --from=builder /app/next.config.js ./next.config.js
+COPY --from=builder /app/node_modules ./node_modules
 
-# Exposer le port utilisé par Next.js
+COPY --from=builder /app/src/generated ./src/generated
+COPY --from=builder /app/src ./src
+COPY --from=builder /app/prisma ./prisma
+
 EXPOSE 3000
-
-# Démarrer l'application
 CMD ["npm", "start"]
