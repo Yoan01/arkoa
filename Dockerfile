@@ -1,16 +1,17 @@
-# Étape 1 : Build
 FROM node:20-alpine AS builder
 WORKDIR /app
 
-COPY package.json package-lock.json ./
-RUN npm i
+# Installer pnpm globalement
+RUN npm install -g pnpm
+
+COPY package.json pnpm-lock.yaml ./
+RUN pnpm install --frozen-lockfile
 
 COPY . .
 
 RUN npx prisma generate
-RUN npm run build
+RUN pnpm run build
 
-# Étape 2 : Runner allégé
 FROM node:20-alpine AS runner
 WORKDIR /app
 
@@ -25,4 +26,4 @@ COPY --from=builder /app/src ./src
 COPY --from=builder /app/prisma ./prisma
 
 EXPOSE 3000
-CMD ["npm", "start"]
+CMD ["pnpm", "start"]
