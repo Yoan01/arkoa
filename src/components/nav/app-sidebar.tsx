@@ -36,10 +36,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <SidebarContent>
         {!isFetchingRole && activeCompany && (
           <>
-            <NavMain
-              roleInfo={roleInfo as UserCompanyRoleInput}
-              activeCompany={activeCompany}
-            />
+            <NavMain roleInfo={roleInfo as UserCompanyRoleInput} />
             {roleInfo?.isManager && <NavManagers />}
           </>
         )}

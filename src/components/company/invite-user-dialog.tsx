@@ -29,6 +29,7 @@ import {
   InviteMemberInput,
   InviteMemberSchema,
 } from '@/schemas/invite-member-schema'
+import { useCompanyStore } from '@/stores/use-company-store'
 
 import {
   Select,
@@ -37,16 +38,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from '../ui/select'
-import { SidebarMenuButton } from '../ui/sidebar'
 
 interface Props {
-  companyId: string
-  children?: React.ReactNode
+  trigger?: React.ReactNode
 }
 
-export function InviteUserDialog({ companyId }: Props) {
+export function InviteUserDialog({ trigger }: Props) {
   const [open, setOpen] = useState(false)
   const inviteMember = useInviteMembership()
+  const { activeCompany } = useCompanyStore()
 
   const form = useForm<InviteMemberInput>({
     resolver: zodResolver(InviteMemberSchema),
@@ -58,7 +58,10 @@ export function InviteUserDialog({ companyId }: Props) {
 
   const onSubmit = async (values: InviteMemberInput) => {
     await inviteMember.mutateAsync(
-      { companyId, data: { email: values.email, role: values.role } },
+      {
+        companyId: activeCompany?.id ?? '',
+        data: { email: values.email, role: values.role },
+      },
       {
         onSuccess() {
           form.reset()
@@ -77,13 +80,18 @@ export function InviteUserDialog({ companyId }: Props) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <SidebarMenuButton
-          tooltip='Inviter un membre'
-          className='bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground active:bg-primary/90 active:text-primary-foreground min-w-8 duration-200 ease-linear'
-        >
-          <PlusCircleIcon />
-          <span>Inviter un membre</span>
-        </SidebarMenuButton>
+        {trigger ? (
+          trigger
+        ) : (
+          <Button
+            className='gap-2'
+            size={'sm'}
+            onSelect={e => e.preventDefault()}
+          >
+            <PlusCircleIcon className='size-4' />
+            <span>Inviter un membre</span>
+          </Button>
+        )}
       </DialogTrigger>
       <DialogContent className='sm:max-w-[425px]'>
         <DialogHeader>

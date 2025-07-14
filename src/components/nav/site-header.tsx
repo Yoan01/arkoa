@@ -6,6 +6,7 @@ import { Separator } from '@/components/ui/separator'
 import { SidebarTrigger } from '@/components/ui/sidebar'
 import { routeTitles } from '@/lib/constants'
 
+import { InviteUserDialog } from '../company/invite-user-dialog'
 import { AddLeaveDialog } from '../leaves/add-leave-dialog'
 
 export function SiteHeader() {
@@ -23,6 +24,7 @@ export function SiteHeader() {
           <h1 className='text-base font-medium'>{pageTitle}</h1>
         </div>
         {pathname === '/leaves' && <AddLeaveDialog />}
+        {pathname === '/team' && <InviteUserDialog />}
       </div>
     </header>
   )

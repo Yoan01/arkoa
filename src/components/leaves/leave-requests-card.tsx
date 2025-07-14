@@ -25,7 +25,7 @@ export const LeaveRequestsCard: React.FC = () => {
           <Clock className='h-4 w-4 text-gray-400' />
         </div>
 
-        <div className='mb-4 grid grid-cols-2 gap-4 text-center text-sm sm:grid-cols-4'>
+        <div className='mb-4 grid grid-cols-2 gap-4 text-center text-sm lg:grid-cols-4'>
           <div>
             <div className='text-lg font-bold text-orange-400'>
               {pendingRequests}
