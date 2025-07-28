@@ -26,6 +26,7 @@ model User {
 
   memberships         Membership[] @relation("AllMemberships")
   managedLeaves       Leave[]      @relation("LeaveManager")
+  leaveBalanceHistory LeaveBalanceHistory[] @relation("LeaveBalanceHistoryActor")
 
   @@map("user")
 }
@@ -173,6 +174,23 @@ model LeaveBalance {
 
   membership    Membership  @relation(fields: [membershipId], references: [id], onDelete: Cascade)
 
+  history       LeaveBalanceHistory[]
+
   @@unique([membershipId, type])
   @@map("leave_balance")
+}
+
+model LeaveBalanceHistory {
+  id             String   @id @default(uuid())
+  leaveBalanceId String
+  change         Float
+  reason         String?
+  actorId        String?
+  createdAt      DateTime @default(now())
+
+  leaveBalance LeaveBalance @relation(fields: [leaveBalanceId], references: [id], onDelete: Cascade)
+  actor        User?        @relation("LeaveBalanceHistoryActor", fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([leaveBalanceId])
+  @@map("leave_balance_history")
 }
