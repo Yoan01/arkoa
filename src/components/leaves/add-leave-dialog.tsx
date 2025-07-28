@@ -30,8 +30,8 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Leave, LeaveType } from '@/generated/prisma'
-import { useCreateLeave } from '@/hooks/api/users/create-leave'
-import { useUpdateLeave } from '@/hooks/api/users/update-leave'
+import { useCreateLeave } from '@/hooks/api/leaves/create-leave'
+import { useUpdateLeave } from '@/hooks/api/leaves/update-leave'
 import { leaveTypeLabels } from '@/lib/constants'
 import {
   CreateLeaveInput,
