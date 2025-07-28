@@ -20,7 +20,13 @@ export async function PATCH(
   try {
     const { companyId, membershipId, leaveId } = await params
     const { user } = await requireAuth()
-    const body = UpdateLeaveSchema.parse(await req.json())
+    const json = await req.json()
+    const bodyToValidate = {
+      ...json,
+      startDate: new Date(json.startDate),
+      endDate: new Date(json.endDate),
+    }
+    const body = UpdateLeaveSchema.parse(bodyToValidate)
 
     const updatedLeave = await leaveService.updateLeave(
       companyId,

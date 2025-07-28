@@ -22,7 +22,7 @@ export const useUpdateLeave = () => {
       const res = await fetch(
         `/api/companies/${companyId}/memberships/${membershipId}/leaves/${leaveId}`,
         {
-          method: 'PUT',
+          method: 'PATCH',
           headers: {
             'Content-Type': 'application/json',
           },

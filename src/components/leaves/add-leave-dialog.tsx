@@ -66,8 +66,8 @@ export function AddLeaveDialog({ trigger, leave }: Props) {
     defaultValues: isEditing
       ? {
           type: leave.type,
-          startDate: leave.startDate,
-          endDate: leave.endDate,
+          startDate: new Date(leave.startDate),
+          endDate: new Date(leave.endDate),
           reason: leave.reason ?? '',
         }
       : {
@@ -170,9 +170,7 @@ export function AddLeaveDialog({ trigger, leave }: Props) {
                             ? field.value
                             : new Date(field.value)
                         }
-                        onChange={date =>
-                          field.onChange(isEditing ? date?.toISOString() : date)
-                        }
+                        onChange={date => field.onChange(date)}
                         granularity='minute'
                       />
                     </FormControl>
@@ -194,9 +192,7 @@ export function AddLeaveDialog({ trigger, leave }: Props) {
                             ? field.value
                             : new Date(field.value)
                         }
-                        onChange={date =>
-                          field.onChange(isEditing ? date?.toISOString() : date)
-                        }
+                        onChange={date => field.onChange(date)}
                         granularity='minute'
                       />
                     </FormControl>
