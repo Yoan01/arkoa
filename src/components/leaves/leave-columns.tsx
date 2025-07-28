@@ -22,6 +22,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '../ui/dropdown-menu'
+import { AddLeaveDialog } from './add-leave-dialog'
 
 dayjs.locale('fr')
 
@@ -79,7 +80,7 @@ export const leaveColumns: ColumnDef<Leave>[] = [
     id: 'actions',
     enableHiding: false,
     cell: ({ row }) => {
-      const payment = row.original
+      const leave = row.original
       return (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -90,11 +91,14 @@ export const leaveColumns: ColumnDef<Leave>[] = [
           </DropdownMenuTrigger>
           <DropdownMenuContent align='end'>
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            <DropdownMenuItem
-              onClick={() => navigator.clipboard.writeText(payment.id)}
-            >
-              Modifier
-            </DropdownMenuItem>
+            <AddLeaveDialog
+              trigger={
+                <DropdownMenuItem onSelect={e => e.preventDefault()}>
+                  Modifier
+                </DropdownMenuItem>
+              }
+              leave={leave}
+            />
             <DropdownMenuSeparator />
             <DropdownMenuItem>Voir le détail</DropdownMenuItem>
           </DropdownMenuContent>

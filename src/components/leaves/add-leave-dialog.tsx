@@ -29,13 +29,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { LeaveType } from '@/generated/prisma'
+import { Leave, LeaveType } from '@/generated/prisma'
 import { useCreateLeave } from '@/hooks/api/users/create-leave'
+import { useUpdateLeave } from '@/hooks/api/users/update-leave'
 import { leaveTypeLabels } from '@/lib/constants'
 import {
   CreateLeaveInput,
   CreateLeaveSchema,
 } from '@/schemas/create-leave-schema'
+import {
+  UpdateLeaveInput,
+  UpdateLeaveSchema,
+} from '@/schemas/update-leave-schema'
 import { useCompanyStore } from '@/stores/use-company-store'
 
 import { DateTimePicker } from '../ui/date-time-picker'
@@ -43,45 +48,79 @@ import { Textarea } from '../ui/textarea'
 
 interface Props {
   trigger?: React.ReactNode
+  leave?: Leave
 }
 
-export function AddLeaveDialog({ trigger }: Props) {
+export function AddLeaveDialog({ trigger, leave }: Props) {
   const [open, setOpen] = useState(false)
   const createLeave = useCreateLeave()
+  const updateLeave = useUpdateLeave()
   const { activeCompany } = useCompanyStore()
   const companyId = activeCompany?.id ?? ''
   const membershipId = activeCompany?.userMembershipId ?? ''
 
-  const form = useForm<CreateLeaveInput>({
-    resolver: zodResolver(CreateLeaveSchema),
-    defaultValues: {
-      type: LeaveType.PAID,
-      startDate: new Date(),
-      endDate: new Date(),
-      reason: '',
-    },
+  const isEditing = !!leave
+
+  const form = useForm<CreateLeaveInput | UpdateLeaveInput>({
+    resolver: zodResolver(isEditing ? UpdateLeaveSchema : CreateLeaveSchema),
+    defaultValues: isEditing
+      ? {
+          type: leave.type,
+          startDate: leave.startDate,
+          endDate: leave.endDate,
+          reason: leave.reason ?? '',
+        }
+      : {
+          type: LeaveType.PAID,
+          startDate: new Date(),
+          endDate: new Date(),
+          reason: '',
+        },
   })
 
-  const onSubmit = async (values: CreateLeaveInput) => {
-    await createLeave.mutateAsync(
-      {
-        companyId,
-        membershipId,
-        data: values,
-      },
-      {
-        onSuccess() {
-          form.reset()
-          toast.success('Demande de congé créée avec succès')
-          setOpen(false)
+  const onSubmit = async (values: CreateLeaveInput | UpdateLeaveInput) => {
+    if (isEditing && leave) {
+      await updateLeave.mutateAsync(
+        {
+          companyId,
+          membershipId,
+          leaveId: leave.id,
+          data: values,
         },
-        onError(error) {
-          toast.error('Erreur lors de la création du congé', {
-            description: error.message,
-          })
+        {
+          onSuccess() {
+            form.reset()
+            toast.success('Demande de congé modifiée avec succès')
+            setOpen(false)
+          },
+          onError(error) {
+            toast.error('Erreur lors de la modification du congé', {
+              description: error.message,
+            })
+          },
+        }
+      )
+    } else {
+      await createLeave.mutateAsync(
+        {
+          companyId,
+          membershipId,
+          data: values as CreateLeaveInput,
         },
-      }
-    )
+        {
+          onSuccess() {
+            form.reset()
+            toast.success('Demande de congé créée avec succès')
+            setOpen(false)
+          },
+          onError(error) {
+            toast.error('Erreur lors de la création du congé', {
+              description: error.message,
+            })
+          },
+        }
+      )
+    }
   }
 
   return (
@@ -96,16 +135,20 @@ export function AddLeaveDialog({ trigger }: Props) {
             onSelect={e => e.preventDefault()}
           >
             <Plus className='size-4' />
-            Nouvelle demande
+            {isEditing ? 'Modifier la demande' : 'Nouvelle demande'}
           </Button>
         )}
       </DialogTrigger>
       <DialogContent className='sm:max-w-[500px]'>
         <DialogHeader>
-          <DialogTitle>Nouvelle demande de congé</DialogTitle>
+          <DialogTitle>
+            {isEditing
+              ? 'Modifier la demande de congé'
+              : 'Nouvelle demande de congé'}
+          </DialogTitle>
           <DialogDescription>
-            Renseignez les informations nécessaires pour créer une demande de
-            congé.
+            Renseignez les informations nécessaires pour{' '}
+            {isEditing ? 'modifier' : 'créer'} une demande de congé.
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
@@ -122,8 +165,14 @@ export function AddLeaveDialog({ trigger }: Props) {
                     <FormLabel>Date de début</FormLabel>
                     <FormControl>
                       <DateTimePicker
-                        value={field.value}
-                        onChange={field.onChange}
+                        value={
+                          field.value instanceof Date
+                            ? field.value
+                            : new Date(field.value)
+                        }
+                        onChange={date =>
+                          field.onChange(isEditing ? date?.toISOString() : date)
+                        }
                         granularity='minute'
                       />
                     </FormControl>
@@ -140,8 +189,14 @@ export function AddLeaveDialog({ trigger }: Props) {
                     <FormLabel>Date de fin</FormLabel>
                     <FormControl>
                       <DateTimePicker
-                        value={field.value}
-                        onChange={field.onChange}
+                        value={
+                          field.value instanceof Date
+                            ? field.value
+                            : new Date(field.value)
+                        }
+                        onChange={date =>
+                          field.onChange(isEditing ? date?.toISOString() : date)
+                        }
                         granularity='minute'
                       />
                     </FormControl>
@@ -194,7 +249,16 @@ export function AddLeaveDialog({ trigger }: Props) {
             />
 
             <DialogFooter className='mt-4'>
-              <Button type='submit'>Envoyer</Button>
+              <Button
+                type='submit'
+                disabled={createLeave.isPending || updateLeave.isPending}
+              >
+                {createLeave.isPending || updateLeave.isPending
+                  ? 'En cours...'
+                  : isEditing
+                    ? 'Modifier'
+                    : 'Envoyer'}
+              </Button>
             </DialogFooter>
           </form>
         </Form>
