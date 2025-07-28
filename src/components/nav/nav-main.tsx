@@ -11,18 +11,17 @@ import {
   SidebarMenuItem,
 } from '@/components/ui/sidebar'
 import { appSidebarNav } from '@/lib/constants'
-import { UserCompanyRoleInput } from '@/schemas/queries/company-role-schema'
 
 import { InviteUserDialog } from '../company/invite-user-dialog'
 import { AddLeaveDialog } from '../leaves/add-leave-dialog'
 
-export function NavMain({ roleInfo }: { roleInfo: UserCompanyRoleInput }) {
+export function NavMain({ isManager }: { isManager: boolean }) {
   return (
     <SidebarGroup>
       <SidebarGroupContent className='flex flex-col gap-2'>
         <SidebarMenu>
           <SidebarMenuItem className='flex items-center gap-2'>
-            {roleInfo?.isManager ? (
+            {isManager ? (
               <InviteUserDialog
                 trigger={
                   <SidebarMenuButton

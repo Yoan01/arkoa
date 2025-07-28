@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { requireAuth } from '@/lib/auth-server'
 import { handleApiError } from '@/lib/errors'
 import { prisma } from '@/lib/prisma'
+import { companyService } from '@/lib/services/company-service' // <-- Importer le service
 import { CreateCompanySchema } from '@/schemas/create-company-schema'
 import { UserCompaniesResponseSchema } from '@/schemas/queries/user-company-schema'
 
@@ -34,38 +35,13 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   try {
     const { user } = await requireAuth()
-
     const json = await req.json()
     const body = CreateCompanySchema.parse(json)
 
-    const company = await prisma.company.create({
-      data: {
-        name: body.name,
-        logoUrl: body.logoUrl,
-        annualLeaveDays: body.annualLeaveDays,
-        memberships: {
-          create: {
-            userId: user.id,
-            role: 'MANAGER',
-          },
-        },
-      },
-      include: {
-        memberships: {
-          where: { userId: user.id },
-        },
-      },
-    })
+    // On appelle le service avec les données validées
+    const newCompany = await companyService.createCompany(body, user)
 
-    const userMembership = company.memberships.find(m => m.userId === user.id)
-
-    return NextResponse.json(
-      {
-        ...company,
-        userMembershipId: userMembership?.id ?? null,
-      },
-      { status: 201 }
-    )
+    return NextResponse.json(newCompany, { status: 201 })
   } catch (error) {
     return handleApiError(error, 'API:CREATE_COMPANY')
   }

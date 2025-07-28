@@ -9,8 +9,7 @@ import {
   SidebarMenu,
   SidebarMenuItem,
 } from '@/components/ui/sidebar'
-import { useGetCompanyRole } from '@/hooks/api/users/get-company-role'
-import { UserCompanyRoleInput } from '@/schemas/queries/company-role-schema'
+import { UserRole } from '@/generated/prisma'
 import { useCompanyStore } from '@/stores/use-company-store'
 
 import { NavCompany } from './nav-company'
@@ -20,9 +19,6 @@ import { NavUser } from './nav-user'
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { activeCompany } = useCompanyStore()
-  const { data: roleInfo, isFetching: isFetchingRole } = useGetCompanyRole(
-    activeCompany?.id
-  )
 
   return (
     <Sidebar collapsible='icon' {...props}>
@@ -34,10 +30,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        {!isFetchingRole && activeCompany && (
+        {activeCompany && (
           <>
-            <NavMain roleInfo={roleInfo as UserCompanyRoleInput} />
-            {roleInfo?.isManager && <NavManagers />}
+            <NavMain isManager={activeCompany?.userRole === UserRole.MANAGER} />
+            {activeCompany?.userRole === UserRole.MANAGER && <NavManagers />}
           </>
         )}
       </SidebarContent>
