@@ -1,0 +1,284 @@
+import { User } from 'better-auth'
+import { z } from 'zod'
+
+import { ApiError } from '@/lib/errors'
+import { prisma } from '@/lib/prisma'
+import { InviteMemberSchema } from '@/schemas/invite-member-schema'
+import { UpdateLeaveBalancesSchema } from '@/schemas/update-leave-balances-schema'
+import { UpdateMembershipSchema } from '@/schemas/update-membership-schema'
+
+type AuthenticatedUser = Pick<User, 'id'>
+
+async function getMemberships(companyId: string, user: AuthenticatedUser) {
+  const currentMembership = await prisma.membership.findUnique({
+    where: {
+      userId_companyId: {
+        userId: user.id,
+        companyId,
+      },
+    },
+  })
+
+  if (!currentMembership) {
+    throw new ApiError('Accès interdit', 403)
+  }
+
+  return prisma.membership.findMany({
+    where: {
+      companyId,
+    },
+    include: {
+      user: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+        },
+      },
+    },
+  })
+}
+
+async function getMembershipById(
+  companyId: string,
+  membershipId: string,
+  user: AuthenticatedUser
+) {
+  const requester = await prisma.membership.findUnique({
+    where: {
+      userId_companyId: {
+        userId: user.id,
+        companyId,
+      },
+    },
+  })
+
+  if (!requester) {
+    throw new ApiError('Accès interdit à cette entreprise', 403)
+  }
+
+  const membership = await prisma.membership.findUnique({
+    where: { id: membershipId },
+    include: { user: true },
+  })
+
+  if (!membership || membership.companyId !== companyId) {
+    throw new ApiError('Membre non trouvé', 404)
+  }
+
+  return membership
+}
+
+async function inviteMember(
+  companyId: string,
+  data: z.infer<typeof InviteMemberSchema>,
+  user: AuthenticatedUser
+) {
+  const currentMembership = await prisma.membership.findUnique({
+    where: {
+      userId_companyId: {
+        userId: user.id,
+        companyId,
+      },
+    },
+  })
+
+  if (!currentMembership || currentMembership.role !== 'MANAGER') {
+    throw new ApiError('Seuls les managers peuvent inviter', 403)
+  }
+
+  const existingUser = await prisma.user.findUnique({
+    where: {
+      email: data.email,
+    },
+  })
+
+  if (!existingUser) {
+    throw new ApiError(
+      "Aucun utilisateur trouvé avec cet email. Il doit d'abord créer un compte.",
+      400
+    )
+  }
+
+  const alreadyMember = await prisma.membership.findUnique({
+    where: {
+      userId_companyId: {
+        userId: existingUser.id,
+        companyId,
+      },
+    },
+  })
+
+  if (alreadyMember) {
+    throw new ApiError("Cet utilisateur est déjà membre de l'entreprise.", 400)
+  }
+
+  return prisma.membership.create({
+    data: {
+      userId: existingUser.id,
+      companyId,
+      role: data.role,
+    },
+  })
+}
+
+async function updateMembership(
+  companyId: string,
+  membershipId: string,
+  data: z.infer<typeof UpdateMembershipSchema>,
+  user: AuthenticatedUser
+) {
+  const requester = await prisma.membership.findUnique({
+    where: {
+      userId_companyId: {
+        userId: user.id,
+        companyId,
+      },
+    },
+  })
+
+  if (!requester || requester.role !== 'MANAGER') {
+    throw new ApiError('Seul un manager peut modifier les rôles', 403)
+  }
+
+  const membership = await prisma.membership.findUnique({
+    where: { id: membershipId },
+  })
+
+  if (!membership || membership.companyId !== companyId) {
+    throw new ApiError('Membre non trouvé', 404)
+  }
+
+  return prisma.membership.update({
+    where: { id: membershipId },
+    data: { role: data.role },
+  })
+}
+
+async function deleteMembership(
+  companyId: string,
+  membershipId: string,
+  user: AuthenticatedUser
+) {
+  const requester = await prisma.membership.findUnique({
+    where: {
+      userId_companyId: {
+        userId: user.id,
+        companyId,
+      },
+    },
+  })
+
+  if (!requester || requester.role !== 'MANAGER') {
+    throw new ApiError('Seul un manager peut supprimer un membre', 403)
+  }
+
+  const membership = await prisma.membership.findUnique({
+    where: { id: membershipId },
+  })
+
+  if (!membership || membership.companyId !== companyId) {
+    throw new ApiError('Membre non trouvé', 404)
+  }
+
+  await prisma.membership.delete({
+    where: { id: membershipId },
+  })
+}
+
+async function getLeaveBalances(membershipId: string, user: AuthenticatedUser) {
+  const targetMembership = await prisma.membership.findUnique({
+    where: { id: membershipId },
+  })
+
+  if (!targetMembership) {
+    throw new ApiError('Membre introuvable', 404)
+  }
+
+  const requesterMembership = await prisma.membership.findUnique({
+    where: {
+      userId_companyId: {
+        userId: user.id,
+        companyId: targetMembership.companyId,
+      },
+    },
+  })
+
+  const isSelf = targetMembership.userId === user.id
+  const isManager = requesterMembership?.role === 'MANAGER'
+
+  if (!isSelf && !isManager) {
+    throw new ApiError('Accès refusé', 403)
+  }
+
+  return prisma.leaveBalance.findMany({
+    where: {
+      membershipId,
+    },
+    orderBy: {
+      type: 'asc',
+    },
+  })
+}
+
+async function updateLeaveBalances(
+  companyId: string,
+  membershipId: string,
+  data: z.infer<typeof UpdateLeaveBalancesSchema>,
+  user: AuthenticatedUser
+) {
+  const manager = await prisma.membership.findUnique({
+    where: {
+      userId_companyId: {
+        userId: user.id,
+        companyId,
+      },
+    },
+  })
+
+  if (!manager || manager.role !== 'MANAGER') {
+    throw new ApiError(
+      'Accès refusé : seuls les managers peuvent modifier les soldes',
+      403
+    )
+  }
+
+  const targetMembership = await prisma.membership.findUnique({
+    where: { id: membershipId },
+  })
+
+  if (!targetMembership || targetMembership.companyId !== companyId) {
+    throw new ApiError('Ce membre ne fait pas partie de cette entreprise', 403)
+  }
+
+  return Promise.all(
+    data.balances.map(balance =>
+      prisma.leaveBalance.upsert({
+        where: {
+          membershipId_type: {
+            membershipId,
+            type: balance.type,
+          },
+        },
+        update: {
+          remainingDays: balance.remainingDays,
+        },
+        create: {
+          membershipId,
+          type: balance.type,
+          remainingDays: balance.remainingDays,
+        },
+      })
+    )
+  )
+}
+
+export const membershipService = {
+  getMemberships,
+  getMembershipById,
+  inviteMember,
+  updateMembership,
+  deleteMembership,
+  getLeaveBalances,
+  updateLeaveBalances,
+}

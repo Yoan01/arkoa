@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 
 import { requireAuth } from '@/lib/auth-server'
-import { ApiError, handleApiError } from '@/lib/errors'
-import { prisma } from '@/lib/prisma'
+import { handleApiError } from '@/lib/errors'
+import { membershipService } from '@/lib/services/membership-service'
 import { UpdateMembershipSchema } from '@/schemas/update-membership-schema'
 
 export async function GET(
@@ -13,27 +13,11 @@ export async function GET(
     const { companyId, membershipId } = await params
     const { user } = await requireAuth()
 
-    const requester = await prisma.membership.findUnique({
-      where: {
-        userId_companyId: {
-          userId: user.id,
-          companyId,
-        },
-      },
-    })
-
-    if (!requester) {
-      throw new ApiError('Accès interdit à cette entreprise', 403)
-    }
-
-    const membership = await prisma.membership.findUnique({
-      where: { id: membershipId },
-      include: { user: true },
-    })
-
-    if (!membership || membership.companyId !== companyId) {
-      throw new ApiError('Membre non trouvé', 404)
-    }
+    const membership = await membershipService.getMembershipById(
+      companyId,
+      membershipId,
+      user
+    )
 
     return NextResponse.json(membership, { status: 200 })
   } catch (error) {
@@ -50,31 +34,12 @@ export async function POST(
     const { user } = await requireAuth()
     const body = UpdateMembershipSchema.parse(await req.json())
 
-    const requester = await prisma.membership.findUnique({
-      where: {
-        userId_companyId: {
-          userId: user.id,
-          companyId,
-        },
-      },
-    })
-
-    if (!requester || requester.role !== 'MANAGER') {
-      throw new ApiError('Seul un manager peut modifier les rôles', 403)
-    }
-
-    const membership = await prisma.membership.findUnique({
-      where: { id: membershipId },
-    })
-
-    if (!membership || membership.companyId !== companyId) {
-      throw new ApiError('Membre non trouvé', 404)
-    }
-
-    const updated = await prisma.membership.update({
-      where: { id: membershipId },
-      data: { role: body.role },
-    })
+    const updated = await membershipService.updateMembership(
+      companyId,
+      membershipId,
+      body,
+      user
+    )
 
     return NextResponse.json(updated, { status: 200 })
   } catch (error) {
@@ -90,30 +55,7 @@ export async function DELETE(
     const { companyId, membershipId } = await params
     const { user } = await requireAuth()
 
-    const requester = await prisma.membership.findUnique({
-      where: {
-        userId_companyId: {
-          userId: user.id,
-          companyId,
-        },
-      },
-    })
-
-    if (!requester || requester.role !== 'MANAGER') {
-      throw new ApiError('Seul un manager peut supprimer un membre', 403)
-    }
-
-    const membership = await prisma.membership.findUnique({
-      where: { id: membershipId },
-    })
-
-    if (!membership || membership.companyId !== companyId) {
-      throw new ApiError('Membre non trouvé', 404)
-    }
-
-    await prisma.membership.delete({
-      where: { id: membershipId },
-    })
+    await membershipService.deleteMembership(companyId, membershipId, user)
 
     return new NextResponse(null, { status: 204 })
   } catch (error) {
