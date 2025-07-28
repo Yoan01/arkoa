@@ -9,10 +9,16 @@ export async function PATCH(
   req: NextRequest,
   {
     params,
-  }: { params: { companyId: string; membershipId: string; leaveId: string } }
+  }: {
+    params: Promise<{
+      companyId: string
+      membershipId: string
+      leaveId: string
+    }>
+  }
 ) {
   try {
-    const { companyId, membershipId, leaveId } = params
+    const { companyId, membershipId, leaveId } = await params
     const { user } = await requireAuth()
     const body = UpdateLeaveSchema.parse(await req.json())
 
@@ -34,15 +40,21 @@ export async function DELETE(
   _req: NextRequest,
   {
     params,
-  }: { params: { companyId: string; membershipId: string; leaveId: string } }
+  }: {
+    params: Promise<{
+      companyId: string
+      membershipId: string
+      leaveId: string
+    }>
+  }
 ) {
   try {
-    const { companyId, membershipId, leaveId } = params
+    const { companyId, leaveId, membershipId } = await params
     const { user } = await requireAuth()
 
     await leaveService.deleteLeave(companyId, membershipId, leaveId, user)
 
-    return new NextResponse(null, { status: 204 })
+    return NextResponse.json({ success: true }, { status: 200 })
   } catch (error) {
     return handleApiError(error, 'API:DELETE_LEAVE')
   }
