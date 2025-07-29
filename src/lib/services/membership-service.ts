@@ -4,7 +4,6 @@ import { z } from 'zod'
 import { ApiError } from '@/lib/errors'
 import { prisma } from '@/lib/prisma'
 import { InviteMemberSchema } from '@/schemas/invite-member-schema'
-import { UpdateLeaveBalancesSchema } from '@/schemas/update-leave-balances-schema'
 import { UpdateMembershipSchema } from '@/schemas/update-membership-schema'
 
 type AuthenticatedUser = Pick<User, 'id'>
@@ -186,99 +185,10 @@ async function deleteMembership(
   })
 }
 
-async function getLeaveBalances(membershipId: string, user: AuthenticatedUser) {
-  const targetMembership = await prisma.membership.findUnique({
-    where: { id: membershipId },
-  })
-
-  if (!targetMembership) {
-    throw new ApiError('Membre introuvable', 404)
-  }
-
-  const requesterMembership = await prisma.membership.findUnique({
-    where: {
-      userId_companyId: {
-        userId: user.id,
-        companyId: targetMembership.companyId,
-      },
-    },
-  })
-
-  const isSelf = targetMembership.userId === user.id
-  const isManager = requesterMembership?.role === 'MANAGER'
-
-  if (!isSelf && !isManager) {
-    throw new ApiError('Accès refusé', 403)
-  }
-
-  return prisma.leaveBalance.findMany({
-    where: {
-      membershipId,
-    },
-    orderBy: {
-      type: 'asc',
-    },
-  })
-}
-
-async function updateLeaveBalances(
-  companyId: string,
-  membershipId: string,
-  data: z.infer<typeof UpdateLeaveBalancesSchema>,
-  user: AuthenticatedUser
-) {
-  const manager = await prisma.membership.findUnique({
-    where: {
-      userId_companyId: {
-        userId: user.id,
-        companyId,
-      },
-    },
-  })
-
-  if (!manager || manager.role !== 'MANAGER') {
-    throw new ApiError(
-      'Accès refusé : seuls les managers peuvent modifier les soldes',
-      403
-    )
-  }
-
-  const targetMembership = await prisma.membership.findUnique({
-    where: { id: membershipId },
-  })
-
-  if (!targetMembership || targetMembership.companyId !== companyId) {
-    throw new ApiError('Ce membre ne fait pas partie de cette entreprise', 403)
-  }
-
-  return Promise.all(
-    data.balances.map(balance =>
-      prisma.leaveBalance.upsert({
-        where: {
-          membershipId_type: {
-            membershipId,
-            type: balance.type,
-          },
-        },
-        update: {
-          remainingDays: balance.remainingDays,
-        },
-        create: {
-          membershipId,
-          type: balance.type,
-          remainingDays: balance.remainingDays,
-        },
-      })
-    )
-  )
-}
-
 export const membershipService = {
   getMemberships,
   getMembershipById,
   inviteMember,
   updateMembership,
   deleteMembership,
-  getLeaveBalances,
-  updateLeaveBalances,
 }

@@ -144,60 +144,6 @@ async function getCompanyLeaves(companyId: string, user: AuthenticatedUser) {
   })
 }
 
-async function getLeaveCalendar(companyId: string, user: AuthenticatedUser) {
-  const membership = await prisma.membership.findUnique({
-    where: {
-      userId_companyId: {
-        userId: user.id,
-        companyId,
-      },
-    },
-  })
-
-  if (!membership) {
-    throw new ApiError('Accès refusé à cette entreprise', 403)
-  }
-
-  const leaves = await prisma.leave.findMany({
-    where: {
-      membership: {
-        companyId,
-      },
-      status: 'APPROVED',
-    },
-    select: {
-      id: true,
-      type: true,
-      startDate: true,
-      endDate: true,
-      membership: {
-        select: {
-          id: true,
-          user: {
-            select: {
-              name: true,
-              id: true,
-            },
-          },
-        },
-      },
-    },
-    orderBy: {
-      startDate: 'asc',
-    },
-  })
-
-  return leaves.map(leave => ({
-    id: leave.id,
-    title: `${leave.membership.user.name} - ${leave.type}`,
-    start: leave.startDate,
-    end: leave.endDate,
-    userId: leave.membership.user.id,
-    membershipId: leave.membership.id,
-    type: leave.type,
-  }))
-}
-
 async function updateLeave(
   companyId: string,
   membershipId: string,
@@ -309,7 +255,6 @@ export const leaveService = {
   createLeave,
   reviewLeave,
   getCompanyLeaves,
-  getLeaveCalendar,
   updateLeave,
   deleteLeave,
 }
