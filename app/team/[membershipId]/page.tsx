@@ -1,6 +1,5 @@
 import { MemberDetailsCard } from '@/components/team/member-details-card'
-import { MemberLeaveHistoryCard } from '@/components/team/member-leave-history-card'
-import { MemberLeavesCard } from '@/components/team/member-leaves-card'
+import { MemberLeavesTabs } from '@/components/team/member-leaves-tabs'
 
 interface MemberDetailsPageProps {
   params: Promise<{
@@ -16,8 +15,7 @@ export default async function MemberDetailsPage({
   return (
     <div className='flex flex-col gap-6 px-4 py-4'>
       <MemberDetailsCard membershipId={membershipId} />
-      <MemberLeavesCard membershipId={membershipId} />
-      <MemberLeaveHistoryCard membershipId={membershipId} />
+      <MemberLeavesTabs membershipId={membershipId} />
     </div>
   )
 }
