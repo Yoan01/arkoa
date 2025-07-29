@@ -65,7 +65,15 @@ async function getMembershipById(
 
   const membership = await prisma.membership.findUnique({
     where: { id: membershipId },
-    include: { user: true },
+    include: {
+      user: true,
+      company: {
+        select: {
+          name: true,
+          createdAt: true,
+        },
+      },
+    },
   })
 
   if (!membership || membership.companyId !== companyId) {

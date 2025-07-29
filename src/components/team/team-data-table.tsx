@@ -16,7 +16,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { UserRole } from '@/generated/prisma'
-import { MembershipWithUserInput } from '@/schemas/queries/membership-with-user-schema'
+import { MembershipWithUserInput } from '@/schemas/queries/membership-with-user-and-company-schema'
 
 import { teamColumns } from './team-columns'
 

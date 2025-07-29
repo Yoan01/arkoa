@@ -113,7 +113,62 @@ async function updateLeaveBalance(
   return leaveBalance
 }
 
+async function getLeaveBalanceHistory(
+  membershipId: string,
+  user: AuthenticatedUser
+) {
+  const membership = await prisma.membership.findUnique({
+    where: { id: membershipId },
+  })
+
+  if (!membership) {
+    throw new ApiError('Membre non trouvé', 404)
+  }
+
+  const requesterMembership = await prisma.membership.findFirst({
+    where: {
+      userId: user.id,
+      companyId: membership.companyId,
+    },
+  })
+
+  if (
+    !requesterMembership ||
+    (requesterMembership.role !== 'MANAGER' && membership.userId !== user.id)
+  ) {
+    throw new ApiError('Accès refusé', 403)
+  }
+
+  const history = await prisma.leaveBalanceHistory.findMany({
+    where: {
+      leaveBalance: {
+        membershipId,
+      },
+    },
+    include: {
+      leaveBalance: {
+        select: {
+          type: true,
+        },
+      },
+      actor: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+        },
+      },
+    },
+    orderBy: {
+      createdAt: 'desc',
+    },
+  })
+
+  return history
+}
+
 export const leaveBalanceService = {
   getLeaveBalances,
   updateLeaveBalance,
+  getLeaveBalanceHistory,
 }
