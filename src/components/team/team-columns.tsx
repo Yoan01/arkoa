@@ -7,7 +7,7 @@ import dayjs from 'dayjs'
 import { MoreHorizontalIcon } from 'lucide-react'
 
 import { User } from '@/generated/prisma'
-import { MembershipWithUserInput } from '@/schemas/queries/membership-with-user-and-company-schema'
+import { MembershipWithUserInput } from '@/schemas/queries/membership-with-user-schema'
 
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar'
 import { Badge } from '../ui/badge'
