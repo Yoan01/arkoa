@@ -58,7 +58,7 @@ export const HrStatsCards: React.FC = () => {
 
   return (
     <div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4'>
-      <Card className='shadow-sm transition-shadow hover:shadow-md'>
+      <Card className='justify-between shadow-sm transition-shadow hover:shadow-md'>
         <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
           <CardTitle className='text-sm font-medium'>Total Employés</CardTitle>
           <UsersIcon className='h-5 w-5 text-blue-500' />
@@ -71,7 +71,7 @@ export const HrStatsCards: React.FC = () => {
         </CardContent>
       </Card>
 
-      <Card className='shadow-sm transition-shadow hover:shadow-md'>
+      <Card className='justify-between shadow-sm transition-shadow hover:shadow-md'>
         <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
           <CardTitle className='text-sm font-medium'>En Congé</CardTitle>
           <CalendarIcon className='text-primary/80 h-5 w-5' />
@@ -84,7 +84,7 @@ export const HrStatsCards: React.FC = () => {
         </CardContent>
       </Card>
 
-      <Card className='shadow-sm transition-shadow hover:shadow-md'>
+      <Card className='justify-between shadow-sm transition-shadow hover:shadow-md'>
         <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
           <CardTitle className='text-sm font-medium'>
             Demandes en Attente
@@ -99,7 +99,7 @@ export const HrStatsCards: React.FC = () => {
         </CardContent>
       </Card>
 
-      <Card className='shadow-sm transition-shadow hover:shadow-md'>
+      <Card className='justify-between shadow-sm transition-shadow hover:shadow-md'>
         <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
           <CardTitle className='text-sm font-medium'>Solde Moyen</CardTitle>
           <TrendingUpIcon className='h-5 w-5 text-purple-500' />
