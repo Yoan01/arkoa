@@ -34,6 +34,13 @@ async function getMemberships(companyId: string, user: AuthenticatedUser) {
           email: true,
         },
       },
+      leaveBalances: {
+        select: {
+          id: true,
+          type: true,
+          remainingDays: true,
+        },
+      },
     },
   })
 }
