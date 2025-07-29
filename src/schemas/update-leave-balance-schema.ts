@@ -11,8 +11,9 @@ export const UpdateLeaveBalanceSchema = z.object({
       'La modification doit être un multiple de 0,5 (demi-journée)'
     )
     .min(-365, 'La modification ne peut pas être inférieure à -365 jours')
-    .max(365, 'La modification ne peut pas être supérieure à 365 jours'),
-  reason: z.string().min(1, 'La raison est requise'),
+    .max(365, 'La modification ne peut pas être supérieure à 365 jours')
+    .refine(val => val !== 0, 'La modification ne peut pas être de 0 jour'),
+  reason: z.string().optional(),
 })
 
 export type UpdateLeaveBalanceInput = z.infer<typeof UpdateLeaveBalanceSchema>
