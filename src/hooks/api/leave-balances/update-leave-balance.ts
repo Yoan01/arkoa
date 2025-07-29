@@ -52,6 +52,10 @@ export const useUpdateLeaveBalance = () => {
       queryClient.invalidateQueries({
         queryKey: ['memberships', variables.companyId],
       })
+      // Invalider les statistiques d'entreprise car le solde moyen peut avoir changé
+      queryClient.invalidateQueries({
+        queryKey: ['company-stats', variables.companyId],
+      })
     },
   })
 }

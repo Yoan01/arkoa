@@ -1,3 +1,4 @@
+'use client'
 import {
   CalendarIcon,
   ClockIcon,
@@ -7,14 +8,52 @@ import {
 import React from 'react'
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { useGetCompanyStats } from '@/hooks/api/companies/get-company-stats'
+import { useCompanyStore } from '@/stores/use-company-store'
 
 export const HrStatsCards: React.FC = () => {
-  // Ces données seront récupérées via des hooks API plus tard
-  const stats = {
-    totalEmployees: 13,
-    employeesOnLeave: 4,
-    pendingRequests: 7,
-    averageLeaveBalance: 22.5,
+  const { activeCompany } = useCompanyStore()
+  const {
+    data: stats,
+    isLoading,
+    error,
+  } = useGetCompanyStats(activeCompany?.id)
+
+  if (isLoading) {
+    return (
+      <div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4'>
+        {[...Array(4)].map((_, i) => (
+          <Card key={i}>
+            <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
+              <div className='h-4 w-20 animate-pulse rounded bg-gray-200' />
+              <div className='h-4 w-4 animate-pulse rounded bg-gray-200' />
+            </CardHeader>
+            <CardContent>
+              <div className='h-8 w-16 animate-pulse rounded bg-gray-200' />
+              <div className='mt-1 h-3 w-24 animate-pulse rounded bg-gray-200' />
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4'>
+        <Card className='col-span-full'>
+          <CardContent className='pt-6'>
+            <p className='text-center text-red-600'>
+              Erreur lors du chargement des statistiques
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
+  if (!stats) {
+    return null
   }
 
   return (
