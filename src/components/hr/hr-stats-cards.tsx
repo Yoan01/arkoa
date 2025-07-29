@@ -58,49 +58,57 @@ export const HrStatsCards: React.FC = () => {
 
   return (
     <div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4'>
-      <Card>
+      <Card className='shadow-sm transition-shadow hover:shadow-md'>
         <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
           <CardTitle className='text-sm font-medium'>Total Employés</CardTitle>
-          <UsersIcon className='text-muted-foreground h-4 w-4' />
+          <UsersIcon className='h-5 w-5 text-blue-500' />
         </CardHeader>
         <CardContent>
-          <div className='text-2xl font-bold'>{stats.totalEmployees}</div>
+          <div className='text-3xl font-bold text-blue-600'>
+            {stats.totalEmployees}
+          </div>
           <p className='text-muted-foreground text-xs'>Employés actifs</p>
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className='shadow-sm transition-shadow hover:shadow-md'>
         <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
           <CardTitle className='text-sm font-medium'>En Congé</CardTitle>
-          <CalendarIcon className='text-muted-foreground h-4 w-4' />
+          <CalendarIcon className='text-primary/80 h-5 w-5' />
         </CardHeader>
         <CardContent>
-          <div className='text-2xl font-bold'>{stats.employeesOnLeave}</div>
+          <div className='text-primary text-3xl font-bold'>
+            {stats.employeesOnLeave}
+          </div>
           <p className='text-muted-foreground text-xs'>Actuellement absents</p>
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className='shadow-sm transition-shadow hover:shadow-md'>
         <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
           <CardTitle className='text-sm font-medium'>
             Demandes en Attente
           </CardTitle>
-          <ClockIcon className='text-muted-foreground h-4 w-4' />
+          <ClockIcon className='h-5 w-5 text-orange-400' />
         </CardHeader>
         <CardContent>
-          <div className='text-2xl font-bold'>{stats.pendingRequests}</div>
+          <div className='text-3xl font-bold text-orange-500'>
+            {stats.pendingRequests}
+          </div>
           <p className='text-muted-foreground text-xs'>À traiter</p>
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className='shadow-sm transition-shadow hover:shadow-md'>
         <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
           <CardTitle className='text-sm font-medium'>Solde Moyen</CardTitle>
-          <TrendingUpIcon className='text-muted-foreground h-4 w-4' />
+          <TrendingUpIcon className='h-5 w-5 text-purple-500' />
         </CardHeader>
         <CardContent>
-          <div className='text-2xl font-bold'>{stats.averageLeaveBalance}</div>
-          <p className='text-muted-foreground text-xs'>Jours de congés</p>
+          <div className='text-3xl font-bold text-purple-600'>
+            {stats.averageLeaveBalance}
+          </div>
+          <p className='text-muted-foreground text-xs'>Jours de congés payés</p>
         </CardContent>
       </Card>
     </div>
