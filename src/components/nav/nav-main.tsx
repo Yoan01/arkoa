@@ -2,6 +2,7 @@
 
 import { PlusCircleIcon } from 'lucide-react'
 import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 
 import {
   SidebarGroup,
@@ -16,6 +17,8 @@ import { InviteUserDialog } from '../company/invite-user-dialog'
 import { AddLeaveDialog } from '../leaves/add-leave-dialog'
 
 export function NavMain({ isManager }: { isManager: boolean }) {
+  const pathname = usePathname()
+
   return (
     <SidebarGroup>
       <SidebarGroupContent className='flex flex-col gap-2'>
@@ -51,7 +54,11 @@ export function NavMain({ isManager }: { isManager: boolean }) {
         <SidebarMenu>
           {appSidebarNav.map(item => (
             <SidebarMenuItem key={item.title}>
-              <SidebarMenuButton tooltip={item.title} asChild>
+              <SidebarMenuButton
+                tooltip={item.title}
+                asChild
+                isActive={pathname === item.url}
+              >
                 <Link href={item.url}>
                   {item.icon && <item.icon />}
                   <span>{item.title}</span>
