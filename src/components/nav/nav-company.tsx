@@ -1,7 +1,7 @@
 'use client'
 
 import { ChevronsUpDownIcon, Trash2Icon } from 'lucide-react'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 
 import { Button } from '@/components/ui/button'
@@ -28,20 +28,27 @@ import { Logo } from '../ui/logo'
 export function NavCompany() {
   const { state, isMobile } = useSidebar()
   const { data } = useSession()
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false)
 
-  const { data: companies, isFetching } = useGetCompanies()
+  const { data: companies, isFetching } = useGetCompanies({
+    enabled: isDropdownOpen,
+  })
 
   const { activeCompany, setActiveCompany } = useCompanyStore()
   const deleteCompany = useDeleteCompany()
 
   useEffect(() => {
-    if (!isFetching && (!companies || (companies && companies?.length === 0))) {
+    if (
+      !isFetching &&
+      (!companies || (companies && companies?.length === 0)) &&
+      isDropdownOpen
+    ) {
       setActiveCompany(null)
     }
-  }, [companies, setActiveCompany, isFetching])
+  }, [companies, setActiveCompany, isFetching, isDropdownOpen])
 
   return (
-    <DropdownMenu>
+    <DropdownMenu onOpenChange={setIsDropdownOpen}>
       <DropdownMenuTrigger asChild>
         <SidebarMenuButton
           size={state === 'collapsed' ? 'sm' : 'lg'}

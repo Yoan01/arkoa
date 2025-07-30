@@ -1,10 +1,15 @@
 'use client'
 
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, UseQueryOptions } from '@tanstack/react-query'
 
 import { UserCompanyInput } from '@/schemas/queries/user-company-schema'
 
-export const useGetCompanies = () => {
+type UseGetCompaniesOptions = Omit<
+  UseQueryOptions<UserCompanyInput[]>,
+  'queryKey' | 'queryFn'
+>
+
+export const useGetCompanies = (options?: UseGetCompaniesOptions) => {
   return useQuery<UserCompanyInput[]>({
     queryKey: ['companies'],
     queryFn: async () => {
@@ -15,5 +20,6 @@ export const useGetCompanies = () => {
       }
       return res.json()
     },
+    ...options,
   })
 }
