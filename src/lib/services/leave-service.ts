@@ -1,7 +1,8 @@
 import { User } from 'better-auth'
+import dayjs from 'dayjs'
 import { z } from 'zod'
 
-import { LeaveStatus, UserRole } from '@/generated/prisma'
+import { LeaveStatus, LeaveType, Prisma, UserRole } from '@/generated/prisma'
 import { ApiError } from '@/lib/errors'
 import { prisma } from '@/lib/prisma'
 import { CreateLeaveSchema } from '@/schemas/create-leave-schema'
@@ -9,6 +10,24 @@ import { ReviewLeaveSchema } from '@/schemas/review-leave-schema'
 import { UpdateLeaveSchema } from '@/schemas/update-leave-schema'
 
 type AuthenticatedUser = Pick<User, 'id'>
+
+// Fonction utilitaire pour calculer le nombre de jours ouvrés
+function calculateWorkingDays(startDate: Date, endDate: Date): number {
+  let count = 0
+  let current = dayjs(startDate)
+  const end = dayjs(endDate)
+
+  while (current.isSame(end, 'day') || current.isBefore(end, 'day')) {
+    const dayOfWeek = current.day()
+    // Exclure samedi (6) et dimanche (0)
+    if (dayOfWeek !== 0 && dayOfWeek !== 6) {
+      count++
+    }
+    current = current.add(1, 'day')
+  }
+
+  return count
+}
 
 async function getLeavesForMembership(
   membershipId: string,
@@ -107,18 +126,78 @@ async function reviewLeave(
     throw new ApiError('Seuls les congés en attente peuvent être revus', 400)
   }
 
-  return prisma.leave.update({
-    where: { id: leave.id },
-    data: {
-      status: data.status,
-      managerNote: data.managerNote,
-      managerId: user.id,
-      reviewedAt: new Date(),
-    },
+  // Utiliser une transaction pour assurer la cohérence des données
+  return prisma.$transaction(async tx => {
+    // Mettre à jour le congé
+    const updatedLeave = await tx.leave.update({
+      where: { id: leave.id },
+      data: {
+        status: data.status,
+        managerNote: data.managerNote,
+        managerId: user.id,
+        reviewedAt: dayjs().toDate(),
+      },
+    })
+
+    // Si le congé est refusé et qu'il s'agit d'un type qui consomme des jours de solde
+    if (
+      data.status === LeaveStatus.REJECTED &&
+      (leave.type === LeaveType.PAID || leave.type === LeaveType.RTT)
+    ) {
+      // Calculer le nombre de jours à restituer
+      const daysToRestore = calculateWorkingDays(leave.startDate, leave.endDate)
+
+      if (daysToRestore > 0) {
+        // Chercher le solde existant
+        let leaveBalance = await tx.leaveBalance.findUnique({
+          where: {
+            membershipId_type: {
+              membershipId: leave.membershipId,
+              type: leave.type,
+            },
+          },
+        })
+
+        if (leaveBalance) {
+          // Mettre à jour le solde existant
+          leaveBalance = await tx.leaveBalance.update({
+            where: { id: leaveBalance.id },
+            data: {
+              remainingDays: leaveBalance.remainingDays + daysToRestore,
+            },
+          })
+        } else {
+          // Créer un nouveau solde si il n'existe pas
+          leaveBalance = await tx.leaveBalance.create({
+            data: {
+              membershipId: leave.membershipId,
+              type: leave.type,
+              remainingDays: daysToRestore,
+            },
+          })
+        }
+
+        // Enregistrer l'historique de la restitution
+        await tx.leaveBalanceHistory.create({
+          data: {
+            leaveBalanceId: leaveBalance.id,
+            change: daysToRestore,
+            reason: `Restitution suite au refus du congé du ${dayjs(leave.startDate).format('DD/MM/YYYY')} au ${dayjs(leave.endDate).format('DD/MM/YYYY')}`,
+            actorId: user.id,
+          },
+        })
+      }
+    }
+
+    return updatedLeave
   })
 }
 
-async function getCompanyLeaves(companyId: string, user: AuthenticatedUser) {
+async function getCompanyLeaves(
+  companyId: string,
+  user: AuthenticatedUser,
+  status?: LeaveStatus
+) {
   const membership = await prisma.membership.findUnique({
     where: {
       userId_companyId: {
@@ -132,15 +211,35 @@ async function getCompanyLeaves(companyId: string, user: AuthenticatedUser) {
     throw new ApiError("Accès refusé : vous n'êtes pas manager", 403)
   }
 
-  return prisma.leave.findMany({
-    where: { membership: { companyId } },
+  const whereClause: Prisma.LeaveWhereInput = { membership: { companyId } }
+  if (status) {
+    whereClause.status = status
+  }
+
+  const leaves = await prisma.leave.findMany({
+    where: whereClause,
     select: {
       id: true,
+      type: true,
       startDate: true,
       endDate: true,
+      reason: true,
+      status: true,
+      createdAt: true,
+      managerNote: true,
       membership: { select: { user: { select: { id: true, name: true } } } },
     },
     orderBy: { startDate: 'desc' },
+  })
+
+  // Trier pour mettre les congés PENDING en premier
+  return leaves.sort((a, b) => {
+    if (a.status === LeaveStatus.PENDING && b.status !== LeaveStatus.PENDING)
+      return -1
+    if (a.status !== LeaveStatus.PENDING && b.status === LeaveStatus.PENDING)
+      return 1
+    // Si même statut, garder l'ordre par date de début (déjà trié)
+    return 0
   })
 }
 
@@ -250,6 +349,48 @@ async function deleteLeave(
   })
 }
 
+async function getLeaveStats(companyId: string, user: AuthenticatedUser) {
+  const membership = await prisma.membership.findUnique({
+    where: {
+      userId_companyId: {
+        userId: user.id,
+        companyId,
+      },
+    },
+  })
+
+  if (!membership || membership.role !== 'MANAGER') {
+    throw new ApiError("Accès refusé : vous n'êtes pas manager", 403)
+  }
+
+  const [pendingCount, approvedCount, rejectedCount] = await Promise.all([
+    prisma.leave.count({
+      where: {
+        membership: { companyId },
+        status: LeaveStatus.PENDING,
+      },
+    }),
+    prisma.leave.count({
+      where: {
+        membership: { companyId },
+        status: LeaveStatus.APPROVED,
+      },
+    }),
+    prisma.leave.count({
+      where: {
+        membership: { companyId },
+        status: LeaveStatus.REJECTED,
+      },
+    }),
+  ])
+
+  return {
+    pending: pendingCount,
+    approved: approvedCount,
+    rejected: rejectedCount,
+  }
+}
+
 export const leaveService = {
   getLeavesForMembership,
   createLeave,
@@ -257,4 +398,5 @@ export const leaveService = {
   getCompanyLeaves,
   updateLeave,
   deleteLeave,
+  getLeaveStats,
 }

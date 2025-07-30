@@ -1,29 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-import { LeaveStatus } from '@/generated/prisma'
 import { requireAuth } from '@/lib/auth-server'
 import { handleApiError } from '@/lib/errors'
 import { leaveService } from '@/lib/services/leave-service'
 
 export async function GET(
-  req: NextRequest,
+  _req: NextRequest,
   { params }: { params: Promise<{ companyId: string }> }
 ) {
   try {
     const { companyId } = await params
     const { user } = await requireAuth()
 
-    const { searchParams } = new URL(req.url)
-    const status = searchParams.get('status') as LeaveStatus | null
+    const stats = await leaveService.getLeaveStats(companyId, user)
 
-    const leaves = await leaveService.getCompanyLeaves(
-      companyId,
-      user,
-      status || undefined
-    )
-
-    return NextResponse.json(leaves, { status: 200 })
+    return NextResponse.json(stats)
   } catch (error) {
-    return handleApiError(error, 'API:GET_COMPANY_LEAVES')
+    return handleApiError(error, 'API:GET_LEAVE_STATS')
   }
 }
