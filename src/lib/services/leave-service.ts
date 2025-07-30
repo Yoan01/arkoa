@@ -2,7 +2,13 @@ import { User } from 'better-auth'
 import dayjs from 'dayjs'
 import { z } from 'zod'
 
-import { LeaveStatus, LeaveType, Prisma, UserRole } from '@/generated/prisma'
+import {
+  HalfDayPeriod,
+  LeaveStatus,
+  LeaveType,
+  Prisma,
+  UserRole,
+} from '@/generated/prisma'
 import { ApiError } from '@/lib/errors'
 import { prisma } from '@/lib/prisma'
 import { CreateLeaveSchema } from '@/schemas/create-leave-schema'
@@ -12,7 +18,11 @@ import { UpdateLeaveSchema } from '@/schemas/update-leave-schema'
 type AuthenticatedUser = Pick<User, 'id'>
 
 // Fonction utilitaire pour calculer le nombre de jours ouvrés
-function calculateWorkingDays(startDate: Date, endDate: Date): number {
+export const calculateWorkingDays = (
+  startDate: Date,
+  endDate: Date,
+  halfDayPeriod?: HalfDayPeriod | null
+): number => {
   let count = 0
   let current = dayjs(startDate)
   const end = dayjs(endDate)
@@ -26,7 +36,8 @@ function calculateWorkingDays(startDate: Date, endDate: Date): number {
     current = current.add(1, 'day')
   }
 
-  return count
+  // Si c'est une demi-journée, diviser par 2
+  return halfDayPeriod ? count * 0.5 : count
 }
 
 async function getLeavesForMembership(
@@ -86,6 +97,7 @@ async function createLeave(
       type: data.type,
       startDate: data.startDate,
       endDate: data.endDate,
+      halfDayPeriod: data.halfDayPeriod,
       reason: data.reason,
       status: LeaveStatus.PENDING,
     },
@@ -145,7 +157,11 @@ async function reviewLeave(
       (leave.type === LeaveType.PAID || leave.type === LeaveType.RTT)
     ) {
       // Calculer le nombre de jours à restituer
-      const daysToRestore = calculateWorkingDays(leave.startDate, leave.endDate)
+      const daysToRestore = calculateWorkingDays(
+        leave.startDate,
+        leave.endDate,
+        leave.halfDayPeriod
+      )
 
       if (daysToRestore > 0) {
         // Chercher le solde existant
@@ -223,6 +239,7 @@ async function getCompanyLeaves(
       type: true,
       startDate: true,
       endDate: true,
+      halfDayPeriod: true,
       reason: true,
       status: true,
       createdAt: true,
@@ -292,6 +309,7 @@ async function updateLeave(
     data: {
       startDate: new Date(data.startDate),
       endDate: new Date(data.endDate),
+      halfDayPeriod: data.halfDayPeriod || null,
       reason: data.reason,
       type: data.type,
     },

@@ -6,7 +6,7 @@ import {
   UsersIcon,
 } from 'lucide-react'
 
-import { LeaveStatus, LeaveType } from '@/generated/prisma'
+import { HalfDayPeriod, LeaveStatus, LeaveType } from '@/generated/prisma'
 
 export const appSidebarNav = [
   {
@@ -76,4 +76,9 @@ export const leaveStatusColors: Record<LeaveStatus, string> = {
   [LeaveStatus.APPROVED]: 'bg-green-200 text-green-800',
   [LeaveStatus.REJECTED]: 'bg-red-200 text-red-800',
   [LeaveStatus.CANCELED]: 'bg-gray-200 text-gray-600',
+}
+
+export const halfDayPeriodLabels: Record<HalfDayPeriod, string> = {
+  [HalfDayPeriod.MORNING]: 'Matin',
+  [HalfDayPeriod.AFTERNOON]: 'Après-midi',
 }

@@ -7,6 +7,7 @@ import dayjs from 'dayjs'
 
 import { LeaveStatus, LeaveType } from '@/generated/prisma'
 import {
+  halfDayPeriodLabels,
   leaveStatusColors,
   leaveStatusLabels,
   leaveTypeLabels,
@@ -57,11 +58,19 @@ export const approvalsColumns: ColumnDef<CompanyLeave>[] = [
   },
   {
     id: 'duration',
-    header: 'Durée (jours)',
+    header: 'Durée',
     cell: ({ row }) => {
-      const start = dayjs(row.original.startDate)
-      const end = dayjs(row.original.endDate)
-      return end.diff(start, 'day') + 1
+      const leave = row.original
+      const start = dayjs(leave.startDate)
+      const end = dayjs(leave.endDate)
+      const duration = end.diff(start, 'day') + 1
+
+      if (leave.halfDayPeriod) {
+        const periodLabel = halfDayPeriodLabels[leave.halfDayPeriod]
+        return `Demi-journée (${periodLabel})`
+      }
+
+      return duration === 1 ? '1 jour' : `${duration} jours`
     },
   },
   {

@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-import { LeaveStatus } from '@/generated/prisma'
+import { HalfDayPeriod, LeaveStatus } from '@/generated/prisma'
 
 const userSchema = z.object({
   id: z.string(),
@@ -16,6 +16,7 @@ export const companyLeaveSchema = z.object({
   type: z.string(),
   startDate: z.date(),
   endDate: z.date(),
+  halfDayPeriod: z.nativeEnum(HalfDayPeriod).optional(),
   reason: z.string().nullable().optional(),
   status: z.nativeEnum(LeaveStatus),
   createdAt: z.date(),

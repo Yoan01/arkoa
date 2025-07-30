@@ -1,10 +1,13 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Plus } from 'lucide-react'
-import { useState } from 'react'
+import { fr } from 'date-fns/locale'
+import dayjs from 'dayjs'
+import { CalendarIcon, Plus } from 'lucide-react'
+import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 
 import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
 import {
   Dialog,
   DialogContent,
@@ -29,10 +32,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Leave, LeaveType } from '@/generated/prisma'
+import { HalfDayPeriod, Leave, LeaveType } from '@/generated/prisma'
 import { useCreateLeave } from '@/hooks/api/leaves/create-leave'
 import { useUpdateLeave } from '@/hooks/api/leaves/update-leave'
-import { leaveTypeLabels } from '@/lib/constants'
+import { halfDayPeriodLabels, leaveTypeLabels } from '@/lib/constants'
+import { cn } from '@/lib/utils'
 import {
   CreateLeaveInput,
   CreateLeaveSchema,
@@ -43,7 +47,8 @@ import {
 } from '@/schemas/update-leave-schema'
 import { useCompanyStore } from '@/stores/use-company-store'
 
-import { DateTimePicker } from '../ui/date-time-picker'
+import { Calendar } from '../ui/calendar'
+import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover'
 import { Textarea } from '../ui/textarea'
 
 interface Props {
@@ -53,6 +58,7 @@ interface Props {
 
 export function AddLeaveDialog({ trigger, leave }: Props) {
   const [open, setOpen] = useState(false)
+  const [isHalfDay, setIsHalfDay] = useState(!!leave?.halfDayPeriod)
   const createLeave = useCreateLeave()
   const updateLeave = useUpdateLeave()
   const { activeCompany } = useCompanyStore()
@@ -68,15 +74,34 @@ export function AddLeaveDialog({ trigger, leave }: Props) {
           type: leave.type,
           startDate: new Date(leave.startDate),
           endDate: new Date(leave.endDate),
+          halfDayPeriod: leave.halfDayPeriod ?? undefined,
           reason: leave.reason ?? '',
         }
       : {
           type: LeaveType.PAID,
           startDate: new Date(),
           endDate: new Date(),
+          halfDayPeriod: undefined,
           reason: '',
         },
   })
+
+  const startDate = form.watch('startDate')
+
+  useEffect(() => {
+    if (isHalfDay && startDate) {
+      form.setValue('endDate', startDate)
+    }
+  }, [isHalfDay, startDate, form])
+
+  const handleHalfDayChange = (checked: boolean) => {
+    setIsHalfDay(checked)
+    if (!checked) {
+      form.setValue('halfDayPeriod', undefined)
+    } else {
+      form.setValue('halfDayPeriod', HalfDayPeriod.MORNING)
+    }
+  }
 
   const onSubmit = async (values: CreateLeaveInput | UpdateLeaveInput) => {
     if (isEditing && leave) {
@@ -105,7 +130,7 @@ export function AddLeaveDialog({ trigger, leave }: Props) {
         {
           companyId,
           membershipId,
-          data: values as CreateLeaveInput,
+          data: values,
         },
         {
           onSuccess() {
@@ -159,21 +184,104 @@ export function AddLeaveDialog({ trigger, leave }: Props) {
             <div className='grid grid-cols-1 gap-4 sm:grid-cols-2'>
               <FormField
                 control={form.control}
+                name='type'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Type de congé</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder='Type de congé' />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {Object.entries(leaveTypeLabels).map(
+                          ([value, label]) => (
+                            <SelectItem key={value} value={value}>
+                              {label}
+                            </SelectItem>
+                          )
+                        )}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <div className='flex flex-col space-y-2'>
+                <div className='flex items-center space-x-2'>
+                  <Checkbox
+                    id='halfDay'
+                    checked={isHalfDay}
+                    onCheckedChange={handleHalfDayChange}
+                  />
+                  <label
+                    htmlFor='halfDay'
+                    className='text-sm leading-none font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70'
+                  >
+                    Demi-journée
+                  </label>
+                </div>
+                <p className='text-muted-foreground text-xs'>
+                  Cochez cette case si votre congé ne dure qu'une demi-journée.
+                </p>
+              </div>
+            </div>
+
+            <div className='grid grid-cols-1 gap-4 sm:grid-cols-2'>
+              <FormField
+                control={form.control}
                 name='startDate'
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Date de début</FormLabel>
-                    <FormControl>
-                      <DateTimePicker
-                        value={
-                          field.value instanceof Date
-                            ? field.value
-                            : new Date(field.value)
-                        }
-                        onChange={date => field.onChange(date)}
-                        granularity='minute'
-                      />
-                    </FormControl>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button
+                            variant={'outline'}
+                            className={cn(
+                              'pl-3 text-left font-normal',
+                              !field.value && 'text-muted-foreground'
+                            )}
+                          >
+                            {field.value ? (
+                              dayjs(field.value)
+                                .locale('fr')
+                                .format('DD MMMM YYYY')
+                            ) : (
+                              <span>Choisir une date</span>
+                            )}
+                            <CalendarIcon className='ml-auto h-4 w-4 opacity-50' />
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className='w-auto p-0' align='start'>
+                        <Calendar
+                          locale={fr}
+                          mode='single'
+                          selected={field.value}
+                          onSelect={date => {
+                            field.onChange(date)
+                            if (
+                              form.watch('endDate') &&
+                              date &&
+                              date > form.watch('endDate')
+                            ) {
+                              form.setValue('endDate', date)
+                            }
+                          }}
+                          disabled={date =>
+                            date < dayjs().subtract(1, 'day').toDate()
+                          }
+                          captionLayout='dropdown'
+                        />
+                      </PopoverContent>
+                    </Popover>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -181,54 +289,73 @@ export function AddLeaveDialog({ trigger, leave }: Props) {
 
               <FormField
                 control={form.control}
+                name='halfDayPeriod'
+                render={({ field }) => (
+                  <FormItem className={isHalfDay ? '' : 'hidden'}>
+                    <FormLabel>Période</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder='Sélectionnez une période' />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {Object.entries(halfDayPeriodLabels).map(
+                          ([key, label]) => (
+                            <SelectItem key={key} value={key}>
+                              {label}
+                            </SelectItem>
+                          )
+                        )}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
                 name='endDate'
                 render={({ field }) => (
-                  <FormItem>
+                  <FormItem className={isHalfDay ? 'hidden' : ''}>
                     <FormLabel>Date de fin</FormLabel>
-                    <FormControl>
-                      <DateTimePicker
-                        value={
-                          field.value instanceof Date
-                            ? field.value
-                            : new Date(field.value)
-                        }
-                        onChange={date => field.onChange(date)}
-                        granularity='minute'
-                      />
-                    </FormControl>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button
+                            variant={'outline'}
+                            className={cn(
+                              'pl-3 text-left font-normal',
+                              !field.value && 'text-muted-foreground'
+                            )}
+                          >
+                            {field.value ? (
+                              dayjs(field.value)
+                                .locale('fr')
+                                .format('DD MMMM YYYY')
+                            ) : (
+                              <span>Choisir une date</span>
+                            )}
+                            <CalendarIcon className='ml-auto h-4 w-4 opacity-50' />
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className='w-auto p-0' align='start'>
+                        <Calendar
+                          locale={fr}
+                          mode='single'
+                          selected={field.value}
+                          onSelect={field.onChange}
+                          disabled={date => date < startDate}
+                          captionLayout='dropdown'
+                        />
+                      </PopoverContent>
+                    </Popover>
                     <FormMessage />
                   </FormItem>
                 )}
               />
             </div>
-
-            <FormField
-              control={form.control}
-              name='type'
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Type de congé</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder='Type de congé' />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {Object.entries(leaveTypeLabels).map(([value, label]) => (
-                        <SelectItem key={value} value={value}>
-                          {label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
 
             <FormField
               control={form.control}

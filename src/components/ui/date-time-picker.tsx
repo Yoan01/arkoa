@@ -550,7 +550,7 @@ type DateTimePickerProps = {
   defaultPopupValue?: Date
 } & Pick<
   DayPickerProps,
-  'locale' | 'weekStartsOn' | 'showWeekNumber' | 'showOutsideDays'
+  'locale' | 'weekStartsOn' | 'showWeekNumber' | 'showOutsideDays' | 'hidden'
 >
 
 type DateTimePickerRef = {
@@ -569,12 +569,12 @@ const DateTimePicker = React.forwardRef<
       onChange,
       onMonthChange,
       hourCycle = 24,
-      yearRange = 50,
       disabled = false,
       displayFormat,
       granularity = 'second',
       placeholder = 'Pick a date',
       className,
+      hidden,
       ...props
     },
     ref
@@ -707,6 +707,7 @@ const DateTimePicker = React.forwardRef<
                 onSelect(newDate)
               }
             }}
+            hidden={hidden}
             captionLayout='dropdown'
             onMonthChange={handleMonthChange}
             locale={locale}

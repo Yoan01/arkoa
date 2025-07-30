@@ -12,7 +12,9 @@ import {
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
+import { HalfDayPeriod, Leave } from '@/generated/prisma'
 import { useGetMembershipLeaves } from '@/hooks/api/leaves/get-membership-leaves'
+import { halfDayPeriodLabels } from '@/lib/constants'
 import { useCompanyStore } from '@/stores/use-company-store'
 
 interface MemberLeavesCardProps {
@@ -80,10 +82,28 @@ export function MemberLeavesCard({ membershipId }: MemberLeavesCardProps) {
     return dayjs(dateString).format('DD MMM YYYY')
   }
 
-  const calculateDuration = (startDate: Date, endDate: Date) => {
+  const calculateDuration = (
+    startDate: Date,
+    endDate: Date,
+    halfDayPeriod?: HalfDayPeriod | null
+  ) => {
     const start = dayjs(startDate)
     const end = dayjs(endDate)
-    return end.diff(start, 'day') + 1
+    const days = end.diff(start, 'day') + 1
+    return halfDayPeriod ? days * 0.5 : days
+  }
+
+  const formatDuration = (leave: Leave) => {
+    if (leave.halfDayPeriod) {
+      const periodLabel = halfDayPeriodLabels[leave.halfDayPeriod]
+      return `Demi-journée (${periodLabel})`
+    }
+    const duration = calculateDuration(
+      leave.startDate,
+      leave.endDate,
+      leave.halfDayPeriod
+    )
+    return duration === 1 ? 'jour' : 'jours'
   }
 
   if (loading) {
@@ -167,10 +187,9 @@ export function MemberLeavesCard({ membershipId }: MemberLeavesCardProps) {
                       </span>
                     </div>
                     <span>
-                      {calculateDuration(leave.startDate, leave.endDate)} jour
-                      {calculateDuration(leave.startDate, leave.endDate) !== 1
-                        ? 's'
-                        : ''}
+                      {leave.halfDayPeriod
+                        ? formatDuration(leave)
+                        : `${calculateDuration(leave.startDate, leave.endDate, leave.halfDayPeriod)} ${formatDuration(leave)}`}
                     </span>
                   </div>
 

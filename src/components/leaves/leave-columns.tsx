@@ -8,6 +8,7 @@ import { MoreHorizontalIcon } from 'lucide-react'
 
 import { Leave, LeaveStatus, LeaveType } from '@/generated/prisma'
 import {
+  halfDayPeriodLabels,
   leaveStatusColors,
   leaveStatusLabels,
   leaveTypeLabels,
@@ -52,7 +53,14 @@ export const leaveColumns: ColumnDef<Leave>[] = [
     header: 'Période',
     cell: ({ row }) => {
       const { startDate, endDate } = row.original
-      return `${dayjs(startDate).format('D MMM YYYY')} – ${dayjs(endDate).format('D MMM YYYY')}`
+      const start = dayjs(startDate)
+      const end = dayjs(endDate)
+
+      if (start.isSame(end, 'day')) {
+        return start.format('D MMM YYYY')
+      }
+
+      return `${start.format('D MMM YYYY')} – ${end.format('D MMM YYYY')}`
     },
   },
   {
@@ -65,10 +73,19 @@ export const leaveColumns: ColumnDef<Leave>[] = [
   },
   {
     id: 'duration',
-    header: 'Durée (jours)',
+    header: 'Durée',
     cell: ({ row }) => {
-      const { startDate, endDate } = row.original
-      return dayjs(endDate).diff(dayjs(startDate), 'day') + 1
+      const leave = row.original
+      const start = dayjs(leave.startDate)
+      const end = dayjs(leave.endDate)
+      const duration = end.diff(start, 'day') + 1
+
+      if (leave.halfDayPeriod) {
+        const periodLabel = halfDayPeriodLabels[leave.halfDayPeriod]
+        return `Demi-journée (${periodLabel})`
+      }
+
+      return duration === 1 ? '1 jour' : `${duration} jours`
     },
   },
   {

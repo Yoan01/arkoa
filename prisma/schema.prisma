@@ -126,6 +126,7 @@ model Leave {
   type          LeaveType
   startDate     DateTime
   endDate       DateTime
+  halfDayPeriod HalfDayPeriod?
   status        LeaveStatus  @default(PENDING)
   reason        String?
   managerNote   String?
@@ -162,6 +163,11 @@ enum LeaveStatus {
   APPROVED
   REJECTED
   CANCELED
+}
+
+enum HalfDayPeriod {
+  MORNING
+  AFTERNOON
 }
 
 model LeaveBalance {
