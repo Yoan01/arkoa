@@ -172,11 +172,10 @@ export const CalendarView: React.FC = () => {
               initialYear={currentDate.year()}
               date={selectedDateRange}
               onMonthSelect={handleMonthSelect}
-              triggerClassName='w-44 border-slate-200 bg-white/80 shadow-sm backdrop-blur-sm transition-colors hover:bg-white font-medium'
               placeholder='Sélectionner un mois'
             />
             <Select value={viewMode} onValueChange={setViewMode}>
-              <SelectTrigger className='w-36 border-slate-200 bg-white/80 shadow-sm backdrop-blur-sm transition-colors hover:bg-white'>
+              <SelectTrigger className='border-slate-200 bg-white/80 shadow-sm backdrop-blur-sm transition-colors hover:bg-white'>
                 <SelectValue className='font-medium' />
               </SelectTrigger>
               <SelectContent>
