@@ -46,26 +46,20 @@ jobs:
         if: github.ref == 'refs/heads/staging'
         run: |
           curl -X POST \
-            "${{ secrets.DOKPLOY_URL }}/api/application.deploy" \
-            -H "accept: application/json" \
-            -H "x-api-key: ${{ secrets.DOKPLOY_API_KEY }}" \
+            "${{ secrets.DOKPLOY_URL }}/api/compose.deploy" \
+            -H "Authorization: Bearer ${{ secrets.DOKPLOY_API_KEY }}" \
             -H "Content-Type: application/json" \
             -d '{
-              "json": {
-                "applicationId": "${{ secrets.STAGING_APP_ID }}"
-              }
+              "composeId": "${{ secrets.STAGING_APP_ID }}"
             }'
           
       - name: Deploy to Production
         if: github.ref == 'refs/heads/production'
         run: |
           curl -X POST \
-            "${{ secrets.DOKPLOY_URL }}/api/application.deploy" \
-            -H "accept: application/json" \
-            -H "x-api-key: ${{ secrets.DOKPLOY_API_KEY }}" \
+            "${{ secrets.DOKPLOY_URL }}/api/compose.deploy" \
+            -H "Authorization: Bearer ${{ secrets.DOKPLOY_API_KEY }}" \
             -H "Content-Type: application/json" \
             -d '{
-              "json": {
-                "applicationId": "${{ secrets.PRODUCTION_APP_ID }}"
-              }
+              "composeId": "${{ secrets.PRODUCTION_APP_ID }}"
             }'
