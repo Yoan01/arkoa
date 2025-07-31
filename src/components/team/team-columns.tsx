@@ -70,7 +70,7 @@ export const teamColumns: ColumnDef<MembershipWithUserInput>[] = [
     id: 'phone',
     header: 'Télélphone',
     cell: ({ row }) => {
-      const { user } = row.original
+      const { user: _user } = row.original
       return 'Non renseigné'
     },
   },
