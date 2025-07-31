@@ -8,9 +8,11 @@ import isoWeek from 'dayjs/plugin/isoWeek'
 import weekday from 'dayjs/plugin/weekday'
 import { CalendarIcon, UserIcon } from 'lucide-react'
 import React, { useState } from 'react'
+import { DateRange } from 'react-day-picker'
 
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { MonthPicker } from '@/components/ui/month-picker'
 import {
   Select,
   SelectContent,
@@ -77,7 +79,19 @@ const formatDate = (dateString: string) => {
 export const CalendarView: React.FC = () => {
   const [viewMode, setViewMode] = useState('month')
   const [currentDate, setCurrentDate] = useState(dayjs())
+  const [selectedDateRange, setSelectedDateRange] = useState<DateRange>({
+    from: dayjs().startOf('month').toDate(),
+    to: dayjs().endOf('month').toDate(),
+  })
   const { activeCompany } = useCompanyStore()
+
+  // Fonction pour gérer la sélection du mois
+  const handleMonthSelect = (dateRange: DateRange) => {
+    if (dateRange.from) {
+      setCurrentDate(dayjs(dateRange.from))
+      setSelectedDateRange(dateRange)
+    }
+  }
 
   // Récupération des données via l'API
   const {
@@ -154,28 +168,13 @@ export const CalendarView: React.FC = () => {
             </CardTitle>
           </div>
           <div className='flex items-center gap-3'>
-            <Select
-              value={currentDate.format('YYYY-MM')}
-              onValueChange={value => {
-                setCurrentDate(dayjs(value + '-01'))
-              }}
-            >
-              <SelectTrigger className='w-44 border-slate-200 bg-white/80 shadow-sm backdrop-blur-sm transition-colors hover:bg-white'>
-                <SelectValue className='font-medium'>
-                  {currentDate.format('MMMM YYYY')}
-                </SelectValue>
-              </SelectTrigger>
-              <SelectContent>
-                {Array.from({ length: 12 }, (_, i) => {
-                  const date = dayjs().add(i - 6, 'month')
-                  return (
-                    <SelectItem key={i} value={date.format('YYYY-MM')}>
-                      {date.format('MMMM YYYY')}
-                    </SelectItem>
-                  )
-                })}
-              </SelectContent>
-            </Select>
+            <MonthPicker
+              initialYear={currentDate.year()}
+              date={selectedDateRange}
+              onMonthSelect={handleMonthSelect}
+              triggerClassName='w-44 border-slate-200 bg-white/80 shadow-sm backdrop-blur-sm transition-colors hover:bg-white font-medium'
+              placeholder='Sélectionner un mois'
+            />
             <Select value={viewMode} onValueChange={setViewMode}>
               <SelectTrigger className='w-36 border-slate-200 bg-white/80 shadow-sm backdrop-blur-sm transition-colors hover:bg-white'>
                 <SelectValue className='font-medium' />
