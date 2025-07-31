@@ -44,36 +44,28 @@ jobs:
         
       - name: Deploy to Staging
         if: github.ref == 'refs/heads/staging'
-        env:
-          DOKPLOY_API_KEY: ${{ secrets.DOKPLOY_API_KEY }}
-          DOKPLOY_URL: ${{ secrets.DOKPLOY_URL }}
-          STAGING_APP_ID: ${{ secrets.STAGING_APP_ID }}
         run: |
-          curl -X 'POST' \
-            '${{ env.DOKPLOY_URL }}/api/trpc/application.deploy' \
-            -H 'accept: application/json' \
-            -H 'x-api-key: ${{ env.DOKPLOY_API_KEY }}' \
-            -H 'Content-Type: application/json' \
+          curl -X POST \
+            "${{ secrets.DOKPLOY_URL }}/api/trpc/application.deploy" \
+            -H "accept: application/json" \
+            -H "x-api-key: ${{ secrets.DOKPLOY_API_KEY }}" \
+            -H "Content-Type: application/json" \
             -d '{
               "json": {
-                "applicationId": "${{ env.STAGING_APP_ID }}"
+                "applicationId": "${{ secrets.STAGING_APP_ID }}"
               }
             }'
           
       - name: Deploy to Production
         if: github.ref == 'refs/heads/production'
-        env:
-          DOKPLOY_API_KEY: ${{ secrets.DOKPLOY_API_KEY }}
-          DOKPLOY_URL: ${{ secrets.DOKPLOY_URL }}
-          PRODUCTION_APP_ID: ${{ secrets.PRODUCTION_APP_ID }}
         run: |
-          curl -X 'POST' \
-            '${{ env.DOKPLOY_URL }}/api/trpc/application.deploy' \
-            -H 'accept: application/json' \
-            -H 'x-api-key: ${{ env.DOKPLOY_API_KEY }}' \
-            -H 'Content-Type: application/json' \
+          curl -X POST \
+            "${{ secrets.DOKPLOY_URL }}/api/trpc/application.deploy" \
+            -H "accept: application/json" \
+            -H "x-api-key: ${{ secrets.DOKPLOY_API_KEY }}" \
+            -H "Content-Type: application/json" \
             -d '{
               "json": {
-                "applicationId": "${{ env.PRODUCTION_APP_ID }}"
+                "applicationId": "${{ secrets.PRODUCTION_APP_ID }}"
               }
             }'
