@@ -12,6 +12,7 @@ import {
 import { ApiError } from '@/lib/errors'
 import { prisma } from '@/lib/prisma'
 import { CreateLeaveSchema } from '@/schemas/create-leave-schema'
+import { GetCalendarLeavesParams } from '@/schemas/queries/calendar-leaves-schema'
 import { ReviewLeaveSchema } from '@/schemas/review-leave-schema'
 import { UpdateLeaveSchema } from '@/schemas/update-leave-schema'
 
@@ -409,6 +410,93 @@ async function getLeaveStats(companyId: string, user: AuthenticatedUser) {
   }
 }
 
+async function getCalendarLeaves(
+  companyId: string,
+  user: AuthenticatedUser,
+  params?: GetCalendarLeavesParams
+) {
+  const membership = await prisma.membership.findFirst({
+    where: {
+      companyId,
+      userId: user.id,
+    },
+  })
+
+  if (!membership) {
+    throw new ApiError('Membership not found', 404)
+  }
+
+  // Définir la période de recherche
+  const year = params?.year || new Date().getFullYear()
+  const month = params?.month
+
+  let startDate: Date
+  let endDate: Date
+
+  if (month !== undefined) {
+    // Si un mois est spécifié, récupérer les congés de ce mois
+    startDate = new Date(year, month - 1, 1)
+    endDate = new Date(year, month, 0) // Dernier jour du mois
+  } else {
+    // Sinon, récupérer les congés de toute l'année
+    startDate = new Date(year, 0, 1)
+    endDate = new Date(year, 11, 31)
+  }
+
+  const leaves = await prisma.leave.findMany({
+    where: {
+      membership: {
+        companyId,
+      },
+      OR: [
+        {
+          startDate: {
+            gte: startDate,
+            lte: endDate,
+          },
+        },
+        {
+          endDate: {
+            gte: startDate,
+            lte: endDate,
+          },
+        },
+        {
+          AND: [
+            {
+              startDate: {
+                lte: startDate,
+              },
+            },
+            {
+              endDate: {
+                gte: endDate,
+              },
+            },
+          ],
+        },
+      ],
+    },
+    include: {
+      membership: {
+        include: {
+          user: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+        },
+      },
+    },
+    orderBy: {
+      startDate: 'asc',
+    },
+  })
+
+  return leaves
+}
+
 export const leaveService = {
   getLeavesForMembership,
   createLeave,
@@ -417,4 +505,5 @@ export const leaveService = {
   updateLeave,
   deleteLeave,
   getLeaveStats,
+  getCalendarLeaves,
 }
