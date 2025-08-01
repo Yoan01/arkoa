@@ -180,7 +180,7 @@ describe("API Memberships - Tests d'intégration", () => {
 
   describe("Tests d'erreur", () => {
     it('POST /api/companies/[companyId]/memberships - devrait retourner 500 pour des données invalides', async () => {
-      const invalidData = { email: 'invalid-email', role: 'INVALID_ROLE' }
+      const invalidData = { email: 'invalid-email', role: 'EMPLOYEE' }
       const req = new NextRequest(
         'http://localhost:3000/api/companies/company-1/memberships',
         {

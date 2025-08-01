@@ -39,7 +39,7 @@ pnpm test:integration:ci
 
 ## Tests Implémentés
 
-### 1. API Companies (8 tests)
+### 1. API Companies (7 tests)
 - **CRUD complet** : GET, POST, PUT, DELETE pour les entreprises
 - **Gestion d'erreurs** : Validation des données, entreprises inexistantes, erreurs serveur
 - **Endpoints testés** :
@@ -56,7 +56,7 @@ pnpm test:integration:ci
   - `GET /api/companies/[companyId]/leaves` - Liste des congés (avec filtres par statut)
   - `POST /api/companies/[companyId]/leaves/[leaveId]/review` - Révision de congé (approbation/rejet)
 
-### 3. API Memberships (7 tests)
+### 3. API Memberships (8 tests)
 - **CRUD complet** : GET, POST, DELETE pour les membres
 - **Gestion d'erreurs** : Validation des données, membres inexistants, erreurs serveur
 - **Endpoints testés** :
@@ -72,6 +72,34 @@ pnpm test:integration:ci
 - **Gestion d'erreurs** : Entreprises inexistantes, erreurs de base de données, erreurs d'autorisation
 - **Endpoints testés** :
   - `GET /api/companies/[companyId]/stats` - Statistiques d'entreprise
+
+### 5. API Calendar & Leave Stats (8 tests)
+- **Calendrier des congés** : GET du calendrier avec filtres par période
+- **Statistiques des congés** : GET des statistiques détaillées
+- **Gestion d'erreurs** : Calendriers vides, erreurs de base de données, paramètres manquants
+- **Endpoints testés** :
+  - `GET /api/companies/[companyId]/calendar` - Calendrier des congés
+  - `GET /api/companies/[companyId]/leaves/stats` - Statistiques des congés
+
+### 6. API Leave Balances & Member Leaves (11 tests)
+- **Gestion des soldes** : GET et POST des soldes de congés
+- **Historique des soldes** : GET de l'historique par membre
+- **CRUD des congés de membres** : Opérations complètes sur les congés individuels
+- **Gestion d'erreurs** : Données invalides, membres inexistants
+- **Endpoints testés** :
+  - `GET /api/companies/[companyId]/leave-balances` - Soldes de congés
+  - `POST /api/companies/[companyId]/leave-balances` - Création de soldes
+  - `GET /api/companies/[companyId]/memberships/[membershipId]/leave-balance-history` - Historique des soldes
+  - `GET/POST/PATCH/DELETE /api/companies/[companyId]/memberships/[membershipId]/leaves` - CRUD des congés de membres
+
+### 7. API Authentication & Approval Workflows (14 tests)
+- **Tests d'authentification** : Tokens valides/expirés, permissions insuffisantes
+- **Workflows d'approbation** : Approbation/rejet de congés, approbations en lot
+- **Validation des données** : Prévention des auto-approbations, validation des rôles
+- **Tests d'autorisation** : Vérification des permissions par rôle (ADMIN, MANAGER, EMPLOYEE)
+- **Endpoints testés** :
+  - Tous les endpoints avec tests d'authentification et d'autorisation
+  - Workflows spécialisés d'approbation de congés
 
 ## Philosophie des Tests
 
@@ -95,13 +123,19 @@ jest.mock('../../lib/auth-server', () => ({
 
 ## Couverture Actuelle
 
+**Total : 60 tests (56 passent, 4 échouent)**
+
 Les tests couvrent :
 
-✅ **Opérations CRUD complètes** pour toutes les entités
+✅ **Opérations CRUD complètes** pour toutes les entités (Companies, Leaves, Memberships)
 ✅ **Validation des réponses API** avec vérification des structures de données
-✅ **Gestion d'erreurs** pour tous les cas d'échec
-✅ **Tests d'autorisation** via les mocks d'authentification
-✅ **Validation des données** avec des cas de données invalides
+✅ **Gestion d'erreurs** pour tous les cas d'échec (données invalides, entités inexistantes, erreurs serveur)
+✅ **Tests d'autorisation** via les mocks d'authentification et tests de permissions par rôle
+✅ **Validation des données** avec des cas de données invalides et validation des contraintes métier
+✅ **Workflows d'approbation** avec tests d'approbation/rejet de congés et approbations en lot
+✅ **Statistiques et calendriers** avec tests de génération de données agrégées
+✅ **Gestion des soldes de congés** avec historique et opérations de mise à jour
+✅ **Tests d'authentification** avec gestion des tokens et permissions insuffisantes
 
 ## Extensions Futures Possibles
 

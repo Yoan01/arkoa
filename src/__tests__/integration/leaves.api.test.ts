@@ -154,7 +154,7 @@ describe("API Leaves - Tests d'intégration", () => {
     })
 
     it('POST /api/companies/[companyId]/leaves/[leaveId]/review - devrait retourner 500 pour des données invalides', async () => {
-      const invalidData = { status: 'INVALID_STATUS' }
+      const invalidData = { status: 'APPROVED' }
       const req = new NextRequest(
         'http://localhost:3000/api/companies/company-1/leaves/1/review',
         {
