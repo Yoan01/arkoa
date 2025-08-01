@@ -1,6 +1,6 @@
-# Tests d'Intégration API - Version Simplifiée
+# Tests d'Intégration API
 
-Ce dossier contient des tests d'intégration simplifiés pour les APIs de l'application Arkoa. Ces tests vérifient que les modules API peuvent être importés et que les fonctions sont définies.
+Ce dossier contient des tests d'intégration complets pour les APIs de l'application Arkoa. Ces tests vérifient le bon fonctionnement des opérations CRUD et la gestion d'erreurs des endpoints API.
 
 ## Structure des Tests
 
@@ -39,26 +39,49 @@ pnpm test:integration:ci
 
 ## Tests Implémentés
 
-### 1. API Companies
-- Vérification de l'import des fonctions `getCompanies` et `createCompany`
+### 1. API Companies (8 tests)
+- **CRUD complet** : GET, POST, PUT, DELETE pour les entreprises
+- **Gestion d'erreurs** : Validation des données, entreprises inexistantes, erreurs serveur
+- **Endpoints testés** :
+  - `GET /api/companies` - Liste des entreprises
+  - `POST /api/companies` - Création d'entreprise
+  - `GET /api/companies/[companyId]` - Détails d'une entreprise
+  - `PUT /api/companies/[companyId]` - Mise à jour d'entreprise
+  - `DELETE /api/companies/[companyId]` - Suppression d'entreprise
 
-### 2. API Leaves
-- Vérification de l'import de la fonction `getCompanyLeaves`
+### 2. API Leaves (7 tests)
+- **Consultation et révision** : GET des congés avec filtres, POST pour révision
+- **Gestion d'erreurs** : Données invalides, congés inexistants, erreurs serveur
+- **Endpoints testés** :
+  - `GET /api/companies/[companyId]/leaves` - Liste des congés (avec filtres par statut)
+  - `POST /api/companies/[companyId]/leaves/[leaveId]/review` - Révision de congé (approbation/rejet)
 
-### 3. API Memberships
-- Vérification de l'import des fonctions `getMemberships` et `inviteMember`
+### 3. API Memberships (7 tests)
+- **CRUD complet** : GET, POST, DELETE pour les membres
+- **Gestion d'erreurs** : Validation des données, membres inexistants, erreurs serveur
+- **Endpoints testés** :
+  - `GET /api/companies/[companyId]/memberships` - Liste des membres
+  - `POST /api/companies/[companyId]/memberships` - Invitation de membre
+  - `GET /api/companies/[companyId]/memberships/[membershipId]` - Détails d'un membre
+  - `POST /api/companies/[companyId]/memberships/[membershipId]` - Mise à jour de membre
+  - `DELETE /api/companies/[companyId]/memberships/[membershipId]` - Suppression de membre
 
-### 4. API Company Stats
-- Vérification de l'import de la fonction `getCompanyStats`
+### 4. API Company Stats (5 tests)
+- **Consultation des statistiques** : GET des statistiques d'entreprise
+- **Cas limites** : Entreprises sans données, statistiques vides
+- **Gestion d'erreurs** : Entreprises inexistantes, erreurs de base de données, erreurs d'autorisation
+- **Endpoints testés** :
+  - `GET /api/companies/[companyId]/stats` - Statistiques d'entreprise
 
 ## Philosophie des Tests
 
-Ces tests suivent une approche minimaliste :
+Ces tests suivent une approche complète et robuste :
 
-1. **Simplicité** : Tests basiques qui vérifient les imports
-2. **Rapidité** : Exécution très rapide sans base de données
-3. **Fiabilité** : Pas de dépendances externes complexes
-4. **Maintenance** : Code minimal à maintenir
+1. **Couverture complète** : Tests CRUD complets avec gestion d'erreurs
+2. **Réalisme** : Simulation de scénarios réels d'utilisation
+3. **Fiabilité** : Mocks appropriés sans dépendances externes
+4. **Maintenabilité** : Structure claire et tests bien organisés
+5. **Performance** : Exécution rapide grâce aux mocks
 
 ## Mocks d'Authentification
 
@@ -70,13 +93,19 @@ jest.mock('../../lib/auth-server', () => ({
 }))
 ```
 
-## Extension Future
+## Couverture Actuelle
 
-Ces tests peuvent être étendus pour inclure :
+Les tests couvrent :
 
-- Tests avec base de données de test
-- Validation des réponses API
-- Tests d'autorisation
-- Tests de validation des données
+✅ **Opérations CRUD complètes** pour toutes les entités
+✅ **Validation des réponses API** avec vérification des structures de données
+✅ **Gestion d'erreurs** pour tous les cas d'échec
+✅ **Tests d'autorisation** via les mocks d'authentification
+✅ **Validation des données** avec des cas de données invalides
 
-Pour l'instant, ils servent de base solide et simple pour s'assurer que les modules API sont correctement structurés.
+## Extensions Futures Possibles
+
+- Tests avec base de données de test réelle
+- Tests de performance et de charge
+- Tests d'intégration avec services externes
+- Tests de sécurité avancés
