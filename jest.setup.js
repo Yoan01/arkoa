@@ -12,10 +12,23 @@ global.Request =
   global.Request ||
   class Request {
     constructor(input, init) {
-      this.url = input
+      Object.defineProperty(this, 'url', {
+        value: input,
+        writable: false,
+        enumerable: true,
+        configurable: true,
+      })
       this.method = init?.method || 'GET'
       this.headers = new Headers(init?.headers)
       this.body = init?.body
+    }
+
+    async json() {
+      return this.body ? JSON.parse(this.body) : {}
+    }
+
+    async text() {
+      return this.body || ''
     }
   }
 
@@ -36,7 +49,17 @@ global.Response =
     }
 
     async text() {
-      return this.body
+      return this.body || ''
+    }
+
+    static json(data, init) {
+      return new Response(JSON.stringify(data), {
+        ...init,
+        headers: {
+          'Content-Type': 'application/json',
+          ...init?.headers,
+        },
+      })
     }
   }
 
