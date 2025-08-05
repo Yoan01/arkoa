@@ -18,6 +18,7 @@ import {
 } from '../leave-stats-schema'
 import { membershipWithUserAndCompanySchema } from '../membership-with-user-and-company-schema'
 import { membershipWithUserSchema } from '../membership-with-user-schema'
+import { reviewLeaveParamsSchema } from '../review-leave-schema'
 import { UserCompanySchema } from '../user-company-schema'
 
 describe('Query Schemas', () => {
@@ -332,6 +333,88 @@ describe('Query Schemas', () => {
       }
 
       const result = UserCompanySchema.safeParse(invalidUserCompany)
+      expect(result.success).toBe(false)
+    })
+  })
+
+  describe('reviewLeaveParamsSchema', () => {
+    it('should validate valid review leave params with APPROVED action', () => {
+      const validParams = {
+        companyId: 'company-123',
+        leaveId: 'leave-123',
+        action: LeaveStatus.APPROVED,
+        managerNote: 'Approved for vacation',
+      }
+
+      const result = reviewLeaveParamsSchema.safeParse(validParams)
+      expect(result.success).toBe(true)
+    })
+
+    it('should validate valid review leave params with REJECTED action', () => {
+      const validParams = {
+        companyId: 'company-123',
+        leaveId: 'leave-123',
+        action: LeaveStatus.REJECTED,
+        managerNote: 'Not enough coverage',
+      }
+
+      const result = reviewLeaveParamsSchema.safeParse(validParams)
+      expect(result.success).toBe(true)
+    })
+
+    it('should validate params without optional managerNote', () => {
+      const validParams = {
+        companyId: 'company-123',
+        leaveId: 'leave-123',
+        action: LeaveStatus.APPROVED,
+      }
+
+      const result = reviewLeaveParamsSchema.safeParse(validParams)
+      expect(result.success).toBe(true)
+    })
+
+    it('should reject invalid action', () => {
+      const invalidParams = {
+        companyId: 'company-123',
+        leaveId: 'leave-123',
+        action: LeaveStatus.PENDING, // PENDING is not allowed
+        managerNote: 'Some note',
+      }
+
+      const result = reviewLeaveParamsSchema.safeParse(invalidParams)
+      expect(result.success).toBe(false)
+    })
+
+    it('should reject missing required fields', () => {
+      const invalidParams = {
+        action: LeaveStatus.APPROVED,
+        managerNote: 'Some note',
+        // missing companyId and leaveId
+      }
+
+      const result = reviewLeaveParamsSchema.safeParse(invalidParams)
+      expect(result.success).toBe(false)
+    })
+
+    it('should accept empty string for string fields (no min validation)', () => {
+      const validParams = {
+        companyId: '',
+        leaveId: '',
+        action: LeaveStatus.APPROVED,
+      }
+
+      const result = reviewLeaveParamsSchema.safeParse(validParams)
+      expect(result.success).toBe(true)
+    })
+
+    it('should reject invalid data types', () => {
+      const invalidParams = {
+        companyId: 123, // should be string
+        leaveId: 'leave-123',
+        action: LeaveStatus.APPROVED,
+      }
+
+      const result = reviewLeaveParamsSchema.safeParse(invalidParams)
       expect(result.success).toBe(false)
     })
   })
