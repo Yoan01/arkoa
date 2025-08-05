@@ -66,7 +66,7 @@ async function getLeavesForMembership(
     requesterMembership?.role !== UserRole.MANAGER &&
     membership.userId !== user.id
   ) {
-    throw new ApiError('Accès refusé à ce compte salarié', 403)
+    throw new ApiError('Accès interdit', 403)
   }
 
   return prisma.leave.findMany({
@@ -89,7 +89,25 @@ async function createLeave(
   })
 
   if (!membership || membership.userId !== user.id) {
-    throw new ApiError('Accès refusé à ce compte salarié', 403)
+    throw new ApiError('Accès refusé', 403)
+  }
+
+  // Check leave balance
+  const leaveBalance = await prisma.leaveBalance.findFirst({
+    where: {
+      membershipId: membership.id,
+      type: data.type,
+    },
+  })
+
+  const workingDays = calculateWorkingDays(
+    data.startDate,
+    data.endDate,
+    data.halfDayPeriod
+  )
+
+  if (!leaveBalance || leaveBalance.remainingDays < workingDays) {
+    throw new ApiError('Solde de congés insuffisant', 400)
   }
 
   return prisma.leave.create({
@@ -121,7 +139,7 @@ async function reviewLeave(
   })
 
   if (!manager || manager.role !== 'MANAGER') {
-    throw new ApiError("Accès interdit : vous n'êtes pas manager", 403)
+    throw new ApiError("Accès refusé : vous n'êtes pas manager", 403)
   }
 
   const leave = await prisma.leave.findUnique({
@@ -132,7 +150,7 @@ async function reviewLeave(
   })
 
   if (!leave || leave.membership.companyId !== companyId) {
-    throw new ApiError('Congé introuvable ou non lié à cette entreprise', 404)
+    throw new ApiError('Congé non trouvé ou non lié à cette entreprise', 404)
   }
 
   if (leave.status !== 'PENDING') {
@@ -287,7 +305,7 @@ async function updateLeave(
   })
 
   if (!leave || leave.membershipId !== membershipId) {
-    throw new ApiError('Congé introuvable', 404)
+    throw new ApiError('Congé non trouvé', 404)
   }
 
   if (leave.membership.companyId !== companyId) {
@@ -342,7 +360,7 @@ async function deleteLeave(
   })
 
   if (!leave || leave.membershipId !== membershipId) {
-    throw new ApiError('Congé introuvable', 404)
+    throw new ApiError('Congé non trouvé', 404)
   }
 
   if (leave.membership.companyId !== companyId) {
@@ -382,31 +400,38 @@ async function getLeaveStats(companyId: string, user: AuthenticatedUser) {
     throw new ApiError("Accès refusé : vous n'êtes pas manager", 403)
   }
 
-  const [pendingCount, approvedCount, rejectedCount] = await Promise.all([
-    prisma.leave.count({
-      where: {
-        membership: { companyId },
-        status: LeaveStatus.PENDING,
-      },
-    }),
-    prisma.leave.count({
-      where: {
-        membership: { companyId },
-        status: LeaveStatus.APPROVED,
-      },
-    }),
-    prisma.leave.count({
-      where: {
-        membership: { companyId },
-        status: LeaveStatus.REJECTED,
-      },
-    }),
-  ])
+  const [totalCount, pendingCount, approvedCount, rejectedCount] =
+    await Promise.all([
+      prisma.leave.count({
+        where: {
+          membership: { companyId },
+        },
+      }),
+      prisma.leave.count({
+        where: {
+          membership: { companyId },
+          status: LeaveStatus.PENDING,
+        },
+      }),
+      prisma.leave.count({
+        where: {
+          membership: { companyId },
+          status: LeaveStatus.APPROVED,
+        },
+      }),
+      prisma.leave.count({
+        where: {
+          membership: { companyId },
+          status: LeaveStatus.REJECTED,
+        },
+      }),
+    ])
 
   return {
-    pending: pendingCount,
-    approved: approvedCount,
-    rejected: rejectedCount,
+    totalLeaves: totalCount,
+    pendingLeaves: pendingCount,
+    approvedLeaves: approvedCount,
+    rejectedLeaves: rejectedCount,
   }
 }
 
