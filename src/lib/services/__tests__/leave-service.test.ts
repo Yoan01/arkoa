@@ -55,6 +55,41 @@ describe('calculateWorkingDays', () => {
     expect(result).toBe(5) // Only weekdays
   })
 
+  it('should calculate single day correctly', () => {
+    const startDate = new Date('2024-01-01') // Monday
+    const endDate = new Date('2024-01-01') // Same Monday
+    const result = calculateWorkingDays(startDate, endDate)
+    expect(result).toBe(1)
+  })
+
+  it('should return 0 for weekend-only period', () => {
+    const startDate = new Date('2024-01-06') // Saturday
+    const endDate = new Date('2024-01-07') // Sunday
+    const result = calculateWorkingDays(startDate, endDate)
+    expect(result).toBe(0)
+  })
+
+  it('should handle periods starting on weekend', () => {
+    const startDate = new Date('2024-01-06') // Saturday
+    const endDate = new Date('2024-01-08') // Monday
+    const result = calculateWorkingDays(startDate, endDate)
+    expect(result).toBe(1) // Only Monday
+  })
+
+  it('should handle periods ending on weekend', () => {
+    const startDate = new Date('2024-01-05') // Friday
+    const endDate = new Date('2024-01-07') // Sunday
+    const result = calculateWorkingDays(startDate, endDate)
+    expect(result).toBe(1) // Only Friday
+  })
+
+  it('should calculate multiple weeks correctly', () => {
+    const startDate = new Date('2024-01-01') // Monday
+    const endDate = new Date('2024-01-12') // Friday (next week)
+    const result = calculateWorkingDays(startDate, endDate)
+    expect(result).toBe(10) // 2 full weeks
+  })
+
   it('should calculate half days correctly', () => {
     const startDate = new Date('2024-01-01') // Monday
     const endDate = new Date('2024-01-01') // Same day
