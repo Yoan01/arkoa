@@ -1,9 +1,6 @@
 'use client'
 
-import 'dayjs/locale/fr'
-
 import { ColumnDef } from '@tanstack/react-table'
-import dayjs from 'dayjs'
 
 import { LeaveStatus, LeaveType } from '@/generated/prisma'
 import {
@@ -12,11 +9,10 @@ import {
   leaveStatusLabels,
   leaveTypeLabels,
 } from '@/lib/constants'
+import dayjs from '@/lib/dayjs-config'
 import { CompanyLeave } from '@/schemas/queries/company-leaves-schema'
 
 import { ApprovalActions } from './review-leave-dialog'
-
-dayjs.locale('fr')
 
 const StatusBadge = ({ status }: { status: LeaveStatus }) => {
   return (

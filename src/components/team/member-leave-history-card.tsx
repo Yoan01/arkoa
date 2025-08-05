@@ -1,6 +1,5 @@
 'use client'
 
-import dayjs from 'dayjs'
 import { HistoryIcon } from 'lucide-react'
 import React from 'react'
 
@@ -8,6 +7,7 @@ import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useGetLeaveBalanceHistory } from '@/hooks/api/leave-balances/get-leave-balance-history'
+import dayjs from '@/lib/dayjs-config'
 interface MemberLeaveHistoryCardProps {
   membershipId: string
 }

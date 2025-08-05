@@ -1,11 +1,5 @@
 'use client'
 
-import 'dayjs/locale/fr'
-
-import dayjs from 'dayjs'
-import isBetween from 'dayjs/plugin/isBetween'
-import isoWeek from 'dayjs/plugin/isoWeek'
-import weekday from 'dayjs/plugin/weekday'
 import { CalendarIcon, UserIcon } from 'lucide-react'
 import React, { useState } from 'react'
 import { DateRange } from 'react-day-picker'
@@ -28,13 +22,9 @@ import {
 import { LeaveType } from '@/generated/prisma'
 import { useGetCalendarLeaves } from '@/hooks/api/leaves/get-calendar-leaves'
 import { leaveTypeLabels } from '@/lib/constants'
+import dayjs from '@/lib/dayjs-config'
 import { CalendarLeave } from '@/schemas/queries/calendar-leaves-schema'
 import { useCompanyStore } from '@/stores/use-company-store'
-
-dayjs.extend(isBetween)
-dayjs.extend(weekday)
-dayjs.extend(isoWeek)
-dayjs.locale('fr')
 
 // Fonction pour transformer les données de l'API en format utilisable
 const transformLeaveData = (leave: CalendarLeave) => ({

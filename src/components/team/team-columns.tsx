@@ -1,12 +1,10 @@
 'use client'
 
-import 'dayjs/locale/fr'
-
 import { ColumnDef } from '@tanstack/react-table'
-import dayjs from 'dayjs'
 import { MoreHorizontalIcon } from 'lucide-react'
 
 import { User } from '@/generated/prisma'
+import dayjs from '@/lib/dayjs-config'
 import { MembershipWithUserInput } from '@/schemas/queries/membership-with-user-schema'
 
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar'
@@ -20,8 +18,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '../ui/dropdown-menu'
-
-dayjs.locale('fr')
 
 const StatusBadge = ({ onLeave }: { onLeave: boolean }) => {
   if (onLeave) {

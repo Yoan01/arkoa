@@ -1,5 +1,4 @@
 import { User } from 'better-auth'
-import dayjs from 'dayjs'
 import { z } from 'zod'
 
 import {
@@ -9,6 +8,7 @@ import {
   Prisma,
   UserRole,
 } from '@/generated/prisma'
+import dayjs from '@/lib/dayjs-config'
 import { ApiError } from '@/lib/errors'
 import { prisma } from '@/lib/prisma'
 import { CreateLeaveSchema } from '@/schemas/create-leave-schema'

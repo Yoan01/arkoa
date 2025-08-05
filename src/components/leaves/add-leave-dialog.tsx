@@ -1,6 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { fr } from 'date-fns/locale'
-import dayjs from 'dayjs'
 import { CalendarIcon, Plus } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
@@ -36,6 +35,7 @@ import { HalfDayPeriod, Leave, LeaveType } from '@/generated/prisma'
 import { useCreateLeave } from '@/hooks/api/leaves/create-leave'
 import { useUpdateLeave } from '@/hooks/api/leaves/update-leave'
 import { halfDayPeriodLabels, leaveTypeLabels } from '@/lib/constants'
+import dayjs from '@/lib/dayjs-config'
 import { cn } from '@/lib/utils'
 import {
   CreateLeaveInput,

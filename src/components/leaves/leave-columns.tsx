@@ -1,9 +1,6 @@
 'use client'
 
-import 'dayjs/locale/fr' // pour le français
-
 import { ColumnDef } from '@tanstack/react-table'
-import dayjs from 'dayjs'
 import { MoreHorizontalIcon } from 'lucide-react'
 
 import { Leave, LeaveStatus, LeaveType } from '@/generated/prisma'
@@ -13,6 +10,7 @@ import {
   leaveStatusLabels,
   leaveTypeLabels,
 } from '@/lib/constants'
+import dayjs from '@/lib/dayjs-config'
 
 import { Button } from '../ui/button'
 import {
@@ -24,8 +22,6 @@ import {
   DropdownMenuTrigger,
 } from '../ui/dropdown-menu'
 import { AddLeaveDialog } from './add-leave-dialog'
-
-dayjs.locale('fr')
 
 const StatusBadge = ({ status }: { status: LeaveStatus }) => {
   return (

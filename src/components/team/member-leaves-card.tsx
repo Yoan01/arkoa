@@ -1,6 +1,5 @@
 'use client'
 
-import dayjs from 'dayjs'
 import {
   AlertCircleIcon,
   CalendarIcon,
@@ -15,6 +14,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { HalfDayPeriod, Leave } from '@/generated/prisma'
 import { useGetMembershipLeaves } from '@/hooks/api/leaves/get-membership-leaves'
 import { halfDayPeriodLabels } from '@/lib/constants'
+import dayjs from '@/lib/dayjs-config'
 import { useCompanyStore } from '@/stores/use-company-store'
 
 interface MemberLeavesCardProps {

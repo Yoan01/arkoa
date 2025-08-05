@@ -1,12 +1,12 @@
 'use client'
 
 import { differenceInDays } from 'date-fns'
-import dayjs from 'dayjs'
 import { CalendarIcon, ChevronLeft, ChevronRight } from 'lucide-react'
 import * as React from 'react'
 import { useEffect, useState } from 'react'
 import { DateRange } from 'react-day-picker'
 
+import dayjs from '@/lib/dayjs-config'
 import { cn } from '@/lib/utils'
 
 import { Button } from './button'
