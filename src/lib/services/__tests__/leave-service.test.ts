@@ -37,7 +37,6 @@ jest.mock('@/lib/prisma', () => ({
   },
 }))
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const mockPrisma = prisma as any
 
 describe('calculateWorkingDays', () => {
@@ -189,7 +188,7 @@ describe('leaveService', () => {
 
       mockPrisma.membership.findUnique.mockResolvedValue(mockMembership)
       mockPrisma.leaveBalance.findFirst.mockResolvedValue(mockLeaveBalance)
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       mockPrisma.$transaction.mockImplementation(async (callback: any) => {
         return callback(mockPrisma)
       })
@@ -236,7 +235,7 @@ describe('leaveService', () => {
 
       mockPrisma.membership.findUnique.mockResolvedValue(managerMembership)
       mockPrisma.leave.findUnique.mockResolvedValue(mockLeave)
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       mockPrisma.$transaction.mockImplementation(async (callback: any) => {
         return callback(mockPrisma)
       })
@@ -294,7 +293,7 @@ describe('leaveService', () => {
     it('should delete leave successfully', async () => {
       mockPrisma.membership.findUnique.mockResolvedValue(mockMembership)
       mockPrisma.leave.findUnique.mockResolvedValue(mockLeave)
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       mockPrisma.$transaction.mockImplementation(async (callback: any) => {
         return callback(mockPrisma)
       })

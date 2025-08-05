@@ -46,18 +46,24 @@ describe('leaveBalanceService', () => {
     userId: 'user-1',
     companyId: 'company-1',
     role: UserRole.EMPLOYEE,
+    createdAt: new Date(),
+    updatedAt: new Date(),
   }
   const mockManagerMembershipData = {
     id: 'membership-2',
     userId: 'user-1',
     companyId: 'company-1',
     role: UserRole.MANAGER,
+    createdAt: new Date(),
+    updatedAt: new Date(),
   }
   const mockLeaveBalanceData = {
     id: 'balance-1',
     membershipId: 'membership-1',
-    type: 'PAID',
+    type: 'PAID' as const,
     remainingDays: 25,
+    createdAt: new Date(),
+    updatedAt: new Date(),
   }
 
   beforeEach(() => {
@@ -146,7 +152,14 @@ describe('leaveBalanceService', () => {
         ...mockLeaveBalanceData,
         remainingDays: 30,
       })
-      mockLeaveBalanceHistory.create.mockResolvedValue({})
+      mockLeaveBalanceHistory.create.mockResolvedValue({
+        id: 'history-1',
+        leaveBalanceId: 'balance-1',
+        change: 5,
+        reason: 'Annual allocation',
+        actorId: 'user-1',
+        createdAt: new Date(),
+      })
 
       const result = await leaveBalanceService.updateLeaveBalance(
         'company-1',
@@ -179,7 +192,14 @@ describe('leaveBalanceService', () => {
         ...mockLeaveBalanceData,
         remainingDays: 5,
       })
-      mockLeaveBalanceHistory.create.mockResolvedValue({})
+      mockLeaveBalanceHistory.create.mockResolvedValue({
+        id: 'history-2',
+        leaveBalanceId: 'balance-1',
+        change: 5,
+        reason: 'Annual allocation',
+        actorId: 'user-1',
+        createdAt: new Date(),
+      })
 
       const result = await leaveBalanceService.updateLeaveBalance(
         'company-1',
@@ -207,7 +227,14 @@ describe('leaveBalanceService', () => {
         ...mockLeaveBalanceData,
         remainingDays: 0,
       })
-      mockLeaveBalanceHistory.create.mockResolvedValue({})
+      mockLeaveBalanceHistory.create.mockResolvedValue({
+        id: 'history-3',
+        leaveBalanceId: 'balance-1',
+        change: -10,
+        reason: 'Negative balance prevented',
+        actorId: 'user-1',
+        createdAt: new Date(),
+      })
 
       const negativeUpdateData = { ...updateData, change: -10 }
 
@@ -308,8 +335,10 @@ describe('leaveBalanceService', () => {
     const mockHistory = [
       {
         id: 'history-1',
+        leaveBalanceId: 'balance-1',
         change: 5,
         reason: 'Annual allocation',
+        actorId: 'user-1',
         createdAt: new Date(),
         leaveBalance: { type: 'PAID' },
         actor: { id: 'user-1', name: 'John Doe', email: 'john@example.com' },

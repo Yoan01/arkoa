@@ -4,8 +4,15 @@ require('@testing-library/jest-dom')
 // Import types for jest-dom matchers
 require('./src/types/jest-dom.d.ts')
 
-// Mock dayjs locale
-jest.mock('dayjs/locale/fr', () => ({}))
+// Mock dayjs configuration centralisée
+jest.mock('@/lib/dayjs-config', () => {
+  const actualDayjs = jest.requireActual('dayjs')
+  return {
+    __esModule: true,
+    default: actualDayjs,
+    dayjs: actualDayjs,
+  }
+})
 
 // Polyfill pour Request dans l'environnement de test
 global.Request =

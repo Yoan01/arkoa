@@ -15,15 +15,11 @@ describe('db-storage', () => {
 
   it('should load db-storage module without errors', async () => {
     // Test that the module loads without errors
-    expect(() => {
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      require('../db-storage')
-    }).not.toThrow()
+    await expect(import('../db-storage')).resolves.toBeDefined()
   })
 
   it('should export dbPromise', async () => {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const dbStorage = require('../db-storage')
+    const dbStorage = await import('../db-storage')
     expect(dbStorage.dbPromise).toBeDefined()
   })
 
@@ -40,12 +36,11 @@ describe('db-storage', () => {
   it('should not initialize database in non-client environment', async () => {
     // Mock non-client environment by deleting indexedDB
     const originalIndexedDB = global.indexedDB
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
     delete (global as any).indexedDB
 
     jest.resetModules()
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const dbStorage = require('../db-storage')
+    const dbStorage = await import('../db-storage')
 
     expect(dbStorage.dbPromise).toBeNull()
 

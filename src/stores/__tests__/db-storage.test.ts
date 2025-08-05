@@ -28,7 +28,6 @@ describe('db-storage', () => {
       createObjectStore: jest.fn(),
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     mockOpenDB.mockResolvedValue(mockDb as any)
     jest.clearAllMocks()
   })

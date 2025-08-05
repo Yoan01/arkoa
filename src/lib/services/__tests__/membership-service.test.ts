@@ -27,7 +27,6 @@ jest.mock('@/lib/prisma', () => ({
   },
 }))
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const mockPrisma = prisma as any
 
 describe('membershipService', () => {

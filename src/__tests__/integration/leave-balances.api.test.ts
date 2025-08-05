@@ -83,7 +83,7 @@ jest.mock('../../lib/services/leave-service', () => ({
   leaveService: {
     getLeavesForMembership: jest
       .fn()
-      .mockImplementation((membershipId, user) => {
+      .mockImplementation((membershipId, _user) => {
         return Promise.resolve([
           {
             id: 'leave-1',
@@ -107,7 +107,7 @@ jest.mock('../../lib/services/leave-service', () => ({
           },
         ])
       }),
-    createLeave: jest.fn().mockImplementation((membershipId, data, user) => {
+    createLeave: jest.fn().mockImplementation((membershipId, data, _user) => {
       return Promise.resolve({
         id: 'leave-3',
         membershipId: membershipId,
@@ -121,7 +121,7 @@ jest.mock('../../lib/services/leave-service', () => ({
     }),
     updateLeave: jest
       .fn()
-      .mockImplementation((companyId, membershipId, leaveId, data, user) => {
+      .mockImplementation((companyId, membershipId, leaveId, data, _user) => {
         return Promise.resolve({
           id: leaveId,
           startDate: data.startDate,

@@ -75,6 +75,17 @@ const eslintConfig = [
       ],
     },
   },
+  // Configuration spécifique pour les fichiers de test
+  {
+    files: [
+      '**/__tests__/**/*.{ts,tsx}',
+      '**/*.test.{ts,tsx}',
+      '**/*.spec.{ts,tsx}',
+    ],
+    rules: {
+      '@typescript-eslint/no-explicit-any': 'off',
+    },
+  },
   eslintConfigPrettier, // désactive les règles ESLint qui seraient en conflit avec Prettier
 ]
 

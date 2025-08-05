@@ -16,7 +16,6 @@ describe('activeCompanySlice', () => {
     getState = jest.fn()
     storeApi = {}
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     store = activeCompanySlice(setState, getState, storeApi as any)
   })
 

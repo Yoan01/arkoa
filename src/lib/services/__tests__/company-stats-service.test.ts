@@ -227,7 +227,7 @@ describe('companyStatsService', () => {
       }
 
       const mockDate = new Date('2023-12-15')
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       jest.spyOn(global, 'Date').mockImplementation(() => mockDate as any)
       ;(prisma.membership.findUnique as jest.Mock).mockResolvedValue(
         mockMembership

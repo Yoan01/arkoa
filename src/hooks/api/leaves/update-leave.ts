@@ -3,7 +3,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { UpdateLeaveInput } from '@/schemas/update-leave-schema'
 
 type UpdateLeaveParams = {
-  data: UpdateLeaveInput
+  data: Partial<UpdateLeaveInput>
   companyId: string
   membershipId: string
   leaveId: string
