@@ -210,9 +210,9 @@ describe('Query Schemas', () => {
   describe('leaveStatsResponseSchema', () => {
     it('should validate valid stats response', () => {
       const validStats = {
-        pending: 5,
-        approved: 10,
-        rejected: 2,
+        pendingLeaves: 5,
+        approvedLeaves: 10,
+        rejectedLeaves: 2,
       }
 
       const result = leaveStatsResponseSchema.safeParse(validStats)
@@ -221,9 +221,9 @@ describe('Query Schemas', () => {
 
     it('should reject non-numeric values', () => {
       const invalidStats = {
-        pending: '5',
-        approved: 10,
-        rejected: 2,
+        pendingLeaves: '5',
+        approvedLeaves: 10,
+        rejectedLeaves: 2,
       }
 
       const result = leaveStatsResponseSchema.safeParse(invalidStats)

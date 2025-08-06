@@ -5,9 +5,9 @@ export const getLeaveStatsParamsSchema = z.object({
 })
 
 export const leaveStatsResponseSchema = z.object({
-  pending: z.number(),
-  approved: z.number(),
-  rejected: z.number(),
+  pendingLeaves: z.number(),
+  approvedLeaves: z.number(),
+  rejectedLeaves: z.number(),
 })
 
 export type GetLeaveStatsParams = z.infer<typeof getLeaveStatsParamsSchema>

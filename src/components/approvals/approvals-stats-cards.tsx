@@ -13,28 +13,24 @@ export const ApprovalsStatsCards: React.FC = () => {
     companyId: activeCompany?.id ?? '',
   })
 
-  const pendingCount = leavesStats?.pending ?? 0
-  const approvedCount = leavesStats?.approved ?? 0
-  const rejectedCount = leavesStats?.rejected ?? 0
-
   const stats = [
     {
       title: 'En attente',
-      value: pendingCount,
+      value: leavesStats?.pendingLeaves,
       icon: Clock,
       color: 'text-orange-500',
       bgColor: 'bg-orange-100',
     },
     {
       title: 'Approuvées',
-      value: approvedCount,
+      value: leavesStats?.approvedLeaves,
       icon: CheckCircle,
       color: 'text-green-500',
       bgColor: 'bg-green-100',
     },
     {
       title: 'Rejetées',
-      value: rejectedCount,
+      value: leavesStats?.rejectedLeaves,
       icon: XCircle,
       color: 'text-red-500',
       bgColor: 'bg-red-100',
