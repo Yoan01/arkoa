@@ -1,23 +1,14 @@
 'use client'
 
 import { ColumnDef } from '@tanstack/react-table'
-import { MoreHorizontalIcon } from 'lucide-react'
 
 import { User } from '@/generated/prisma'
 import dayjs from '@/lib/dayjs-config'
-import { MembershipWithUserInput } from '@/schemas/queries/membership-with-user-schema'
+import { MembershipWithUserAndBalances } from '@/schemas/edit-leave-balance-dialog-schema'
 
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar'
 import { Badge } from '../ui/badge'
 import { Button } from '../ui/button'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '../ui/dropdown-menu'
 
 const StatusBadge = ({ onLeave }: { onLeave: boolean }) => {
   if (onLeave) {
@@ -27,7 +18,7 @@ const StatusBadge = ({ onLeave }: { onLeave: boolean }) => {
   }
 }
 
-export const teamColumns: ColumnDef<MembershipWithUserInput>[] = [
+export const teamColumns: ColumnDef<MembershipWithUserAndBalances>[] = [
   {
     accessorKey: 'user',
     header: 'Employé',
@@ -46,11 +37,23 @@ export const teamColumns: ColumnDef<MembershipWithUserInput>[] = [
           </Avatar>
           <div className='grid flex-1 text-left text-sm leading-tight'>
             <span className='truncate font-medium'>{user.name}</span>
-            <span className='text-muted-foreground truncate text-xs'>
-              {user.email}
-            </span>
           </div>
         </div>
+      )
+    },
+  },
+  {
+    accessorKey: 'user.email',
+    header: 'Email',
+    cell: ({ row }) => {
+      const user = row.original.user
+      return (
+        <a
+          href={`mailto:${user.email}`}
+          className='text-muted-foreground hover:text-primary text-sm transition-colors hover:underline'
+        >
+          {user.email}
+        </a>
       )
     },
   },
@@ -77,28 +80,18 @@ export const teamColumns: ColumnDef<MembershipWithUserInput>[] = [
   },
   {
     id: 'actions',
+    header: 'Actions',
     enableHiding: false,
     cell: ({ row }) => {
-      const payment = row.original
+      const membership = row.original
       return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant='ghost' className='h-8 w-8 p-0'>
-              <span className='sr-only'>Open menu</span>
-              <MoreHorizontalIcon />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align='end'>
-            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            <DropdownMenuItem
-              onClick={() => navigator.clipboard.writeText(payment.id)}
-            >
-              Modifier
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem>Voir le détail</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <Button
+          variant='outline'
+          size='sm'
+          onClick={() => (window.location.href = `/team/${membership.id}`)}
+        >
+          Voir le détail
+        </Button>
       )
     },
   },

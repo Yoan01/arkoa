@@ -1,6 +1,13 @@
 'use client'
 
-import { BuildingIcon, ClockIcon, MailIcon, UserIcon } from 'lucide-react'
+import {
+  ArrowLeftIcon,
+  BuildingIcon,
+  ClockIcon,
+  MailIcon,
+  UserIcon,
+} from 'lucide-react'
+import { useRouter } from 'next/navigation'
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
@@ -9,11 +16,14 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { useGetMembership } from '@/hooks/api/memberships/get-membership'
 import { useCompanyStore } from '@/stores/use-company-store'
 
+import { Button } from '../ui/button'
+
 interface MemberDetailsCardProps {
   membershipId: string
 }
 
 export function MemberDetailsCard({ membershipId }: MemberDetailsCardProps) {
+  const router = useRouter()
   const { activeCompany } = useCompanyStore()
   const {
     data: membership,
@@ -93,10 +103,11 @@ export function MemberDetailsCard({ membershipId }: MemberDetailsCardProps) {
   return (
     <Card className='shadow-sm transition-shadow hover:shadow-md'>
       <CardHeader>
-        <CardTitle className='flex items-center gap-3'>
-          <UserIcon className='text-primary h-5 w-5' />
-          Détails du Salarié
-        </CardTitle>
+        <div>
+          <Button variant={'secondary'} size='sm' onClick={() => router.back()}>
+            <ArrowLeftIcon className='h-4 w-4' />
+          </Button>
+        </div>
       </CardHeader>
       <CardContent className='space-y-6'>
         {/* Informations personnelles */}
