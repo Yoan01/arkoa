@@ -172,6 +172,7 @@ describe("API Leave Balances et Member Leaves - Tests d'intégration", () => {
             type: 'PAID',
             change: 5,
             reason: 'Annual adjustment',
+            historyType: 'MANUEL_CREDIT',
           }),
         }
       )

@@ -14,8 +14,10 @@ export const Logo = ({ className = 'size-14', logoUrl }: Props) => {
     return (
       <Image
         src={logoUrl}
+        width={56}
+        height={56}
         alt='Organization Logo'
-        className={cn(className, 'rounded-sm object-contain')}
+        className={cn(className, 'h-full w-full rounded-sm object-contain')}
       />
     )
   }

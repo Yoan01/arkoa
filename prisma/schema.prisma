@@ -1,6 +1,6 @@
 generator client {
-  provider = "prisma-client-js"
-  output   = "../src/generated/prisma"
+  provider      = "prisma-client-js"
+  output        = "../src/generated/prisma"
   binaryTargets = ["native", "debian-openssl-3.0.x"]
 }
 
@@ -9,24 +9,20 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-//////////////////////
-// AUTHENTIFICATION //
-//////////////////////
-
 model User {
-  id                  String       @id
+  id                  String                @id
   name                String
-  email               String       @unique
+  email               String                @unique
   emailVerified       Boolean
   image               String?
   createdAt           DateTime
   updatedAt           DateTime
   sessions            Session[]
   accounts            Account[]
-
-  memberships         Membership[] @relation("AllMemberships")
-  managedLeaves       Leave[]      @relation("LeaveManager")
+  managedLeaves       Leave[]               @relation("LeaveManager")
   leaveBalanceHistory LeaveBalanceHistory[] @relation("LeaveBalanceHistoryActor")
+  memberships         Membership[]          @relation("AllMemberships")
+
 
   @@map("user")
 }
@@ -50,7 +46,6 @@ model Account {
   accountId             String
   providerId            String
   userId                String
-  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   accessToken           String?
   refreshToken          String?
   idToken               String?
@@ -60,6 +55,7 @@ model Account {
   password              String?
   createdAt             DateTime
   updatedAt             DateTime
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("account")
 }
@@ -75,70 +71,87 @@ model Verification {
   @@map("verification")
 }
 
-//////////////////////////
-// STRUCTURE D'ENTREPRISE //
-//////////////////////////
-
 model Company {
-  id                    String       @id @default(uuid())
-  name                  String       @unique
-  logoUrl               String?
-  annualLeaveDays       Int          @default(25)
-  createdAt             DateTime     @default(now())
-  updatedAt             DateTime     @updatedAt
-
-  memberships Membership[]
+  id              String       @id @default(uuid())
+  name            String       @unique
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+  logoUrl         String?
+  annualLeaveDays Int          @default(25)
+  memberships     Membership[]
 
   @@map("company")
 }
 
 model Membership {
-  id             String         @id @default(uuid())
-  userId         String
-  companyId      String
-  role           UserRole       @default(EMPLOYEE)
-  createdAt      DateTime       @default(now())
-  updatedAt      DateTime       @updatedAt
-
-  user           User           @relation("AllMemberships", fields: [userId], references: [id], onDelete: Cascade)
-  company        Company        @relation(fields: [companyId], references: [id], onDelete: Cascade)
-
-  leaves         Leave[]
-  leaveBalances  LeaveBalance[]
+  id            String         @id @default(uuid())
+  userId        String
+  companyId     String
+  role          UserRole       @default(EMPLOYEE)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  leaves        Leave[]
+  leaveBalances LeaveBalance[]
+  company       Company        @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  user          User           @relation("AllMemberships", fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, companyId])
   @@map("membership")
 }
 
-enum UserRole {
-  EMPLOYEE
-  MANAGER
-}
-
-////////////////////////
-// GESTION DES CONGÉS //
-////////////////////////
-
 model Leave {
-  id            String       @id @default(uuid())
-  membershipId  String
+  id            String         @id @default(uuid())
   managerId     String?
-  type          LeaveType
   startDate     DateTime
   endDate       DateTime
-  halfDayPeriod HalfDayPeriod?
-  status        LeaveStatus  @default(PENDING)
+  status        LeaveStatus    @default(PENDING)
   reason        String?
   managerNote   String?
   reviewedAt    DateTime?
-  createdAt     DateTime     @default(now())
-  updatedAt     DateTime     @updatedAt
-
-  membership    Membership   @relation(fields: [membershipId], references: [id], onDelete: Cascade)
-  manager       User?        @relation("LeaveManager", fields: [managerId], references: [id])
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  membershipId  String
+  type          LeaveType
+  halfDayPeriod HalfDayPeriod?
+  manager       User?          @relation("LeaveManager", fields: [managerId], references: [id])
+  membership    Membership     @relation(fields: [membershipId], references: [id], onDelete: Cascade)
 
   @@index([membershipId])
   @@map("leave")
+}
+
+model LeaveBalance {
+  id            String                @id @default(uuid())
+  membershipId  String
+  type          LeaveType
+  remainingDays Float
+  updatedAt     DateTime              @updatedAt
+  createdAt     DateTime              @default(now())
+  membership    Membership            @relation(fields: [membershipId], references: [id], onDelete: Cascade)
+  history       LeaveBalanceHistory[]
+
+  @@unique([membershipId, type])
+  @@map("leave_balance")
+}
+
+model LeaveBalanceHistory {
+  id             String       @id @default(uuid())
+  leaveBalanceId String
+  change         Float
+  reason         String?
+  type           LeaveBalanceHistoryType
+  actorId        String?
+  createdAt      DateTime     @default(now())
+  actor          User?        @relation("LeaveBalanceHistoryActor", fields: [actorId], references: [id])
+  leaveBalance   LeaveBalance @relation(fields: [leaveBalanceId], references: [id], onDelete: Cascade)
+
+  @@index([leaveBalanceId])
+  @@map("leave_balance_history")
+}
+
+enum UserRole {
+  EMPLOYEE
+  MANAGER
 }
 
 enum LeaveType {
@@ -170,33 +183,11 @@ enum HalfDayPeriod {
   AFTERNOON
 }
 
-model LeaveBalance {
-  id            String      @id @default(uuid())
-  membershipId  String
-  type          LeaveType
-  remainingDays Float
-  updatedAt     DateTime    @updatedAt
-  createdAt     DateTime    @default(now())
-
-  membership    Membership  @relation(fields: [membershipId], references: [id], onDelete: Cascade)
-
-  history       LeaveBalanceHistory[]
-
-  @@unique([membershipId, type])
-  @@map("leave_balance")
-}
-
-model LeaveBalanceHistory {
-  id             String   @id @default(uuid())
-  leaveBalanceId String
-  change         Float
-  reason         String?
-  actorId        String?
-  createdAt      DateTime @default(now())
-
-  leaveBalance LeaveBalance @relation(fields: [leaveBalanceId], references: [id], onDelete: Cascade)
-  actor        User?        @relation("LeaveBalanceHistoryActor", fields: [actorId], references: [id], onDelete: SetNull)
-
-  @@index([leaveBalanceId])
-  @@map("leave_balance_history")
+enum LeaveBalanceHistoryType {
+  AUTO_CREDIT          // Auto credit by system
+  MANUEL_CREDIT        // Manual credit by manager
+  LEAVE_REFUND         // Refund when leave is rejected
+  LEAVE_DEDUCTION      // Deduction when leave is taken
+  CARRY_FORWARD        // Carry forward from previous year
+  EXPIRATION           // Expiration of unused days
 }

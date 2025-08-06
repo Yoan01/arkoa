@@ -106,6 +106,7 @@ async function updateLeaveBalance(
       leaveBalanceId: leaveBalance.id,
       change: data.change,
       reason: data.reason,
+      type: data.historyType,
       actorId: user.id,
     },
   })

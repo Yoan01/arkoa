@@ -411,6 +411,7 @@ describe('Mutations Schemas', () => {
           type: LeaveType.PAID,
           change: 2.5,
           reason: 'Bonus days',
+          historyType: 'MANUEL_CREDIT' as const,
         }
 
         const result = UpdateLeaveBalanceSchema.safeParse(validUpdate)
@@ -421,6 +422,7 @@ describe('Mutations Schemas', () => {
         const validUpdate = {
           type: LeaveType.SICK,
           change: -1.5,
+          historyType: 'MANUEL_CREDIT' as const,
         }
 
         const result = UpdateLeaveBalanceSchema.safeParse(validUpdate)
@@ -431,6 +433,7 @@ describe('Mutations Schemas', () => {
         const validUpdate = {
           type: LeaveType.PAID,
           change: 0.5,
+          historyType: 'MANUEL_CREDIT' as const,
         }
 
         const result = UpdateLeaveBalanceSchema.safeParse(validUpdate)

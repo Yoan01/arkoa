@@ -31,7 +31,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
-import { LeaveType } from '@/generated/prisma'
+import { LeaveBalanceHistoryType, LeaveType } from '@/generated/prisma'
 import { useUpdateLeaveBalance } from '@/hooks/api/leave-balances/update-leave-balance'
 import { leaveTypeLabels } from '@/lib/constants'
 import { EditLeaveBalanceDialogProps } from '@/schemas/edit-leave-balance-dialog-schema'
@@ -55,6 +55,7 @@ export const EditLeaveBalanceDialog = ({
       type: LeaveType.PAID,
       change: 0,
       reason: '',
+      historyType: LeaveBalanceHistoryType.MANUEL_CREDIT,
     },
   })
 

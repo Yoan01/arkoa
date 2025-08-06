@@ -48,6 +48,7 @@ describe('useGetLeaveBalanceHistory', () => {
       leaveBalanceId: 'balance-1',
       change: 5,
       reason: 'ANNUAL_RESET',
+      type: 'AUTO_CREDIT',
       createdAt: new Date(),
       actor: {
         id: 'actor-1',

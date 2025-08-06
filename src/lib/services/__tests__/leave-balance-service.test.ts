@@ -141,6 +141,7 @@ describe('leaveBalanceService', () => {
       type: 'PAID' as const,
       change: 5,
       reason: 'Annual allocation',
+      historyType: 'MANUEL_CREDIT' as const,
     }
 
     it('should update existing leave balance', async () => {
@@ -157,6 +158,7 @@ describe('leaveBalanceService', () => {
         leaveBalanceId: 'balance-1',
         change: 5,
         reason: 'Annual allocation',
+        type: 'MANUEL_CREDIT',
         actorId: 'user-1',
         createdAt: new Date(),
       })
@@ -177,6 +179,7 @@ describe('leaveBalanceService', () => {
           leaveBalanceId: 'balance-1',
           change: 5,
           reason: 'Annual allocation',
+          type: 'MANUEL_CREDIT',
           actorId: 'user-1',
         },
       })
@@ -197,6 +200,7 @@ describe('leaveBalanceService', () => {
         leaveBalanceId: 'balance-1',
         change: 5,
         reason: 'Annual allocation',
+        type: 'MANUEL_CREDIT',
         actorId: 'user-1',
         createdAt: new Date(),
       })
@@ -236,7 +240,11 @@ describe('leaveBalanceService', () => {
         createdAt: new Date(),
       })
 
-      const negativeUpdateData = { ...updateData, change: -10 }
+      const negativeUpdateData = {
+        ...updateData,
+        change: -10,
+        historyType: 'LEAVE_DEDUCTION' as const,
+      }
 
       await leaveBalanceService.updateLeaveBalance(
         'company-1',
@@ -338,6 +346,7 @@ describe('leaveBalanceService', () => {
         leaveBalanceId: 'balance-1',
         change: 5,
         reason: 'Annual allocation',
+        type: 'MANUEL_CREDIT',
         actorId: 'user-1',
         createdAt: new Date(),
         leaveBalance: { type: 'PAID' },

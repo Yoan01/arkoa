@@ -150,6 +150,7 @@ describe('Query Schemas', () => {
         leaveBalanceId: 'balance-123',
         change: 5,
         reason: 'Annual allocation',
+        type: 'MANUEL_CREDIT' as const,
         createdAt: new Date('2024-01-01'),
         actor: {
           id: 'user-123',

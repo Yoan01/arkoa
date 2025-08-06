@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-import { LeaveType } from '@/generated/prisma'
+import { LeaveBalanceHistoryType, LeaveType } from '@/generated/prisma'
 
 export const UpdateLeaveBalanceSchema = z.object({
   type: z.nativeEnum(LeaveType),
@@ -14,6 +14,7 @@ export const UpdateLeaveBalanceSchema = z.object({
     .max(365, 'La modification ne peut pas être supérieure à 365 jours')
     .refine(val => val !== 0, 'La modification ne peut pas être de 0 jour'),
   reason: z.string().optional(),
+  historyType: z.nativeEnum(LeaveBalanceHistoryType),
 })
 
 export type UpdateLeaveBalanceInput = z.infer<typeof UpdateLeaveBalanceSchema>

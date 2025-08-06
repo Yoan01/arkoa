@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-import { LeaveType } from '@/generated/prisma'
+import { LeaveBalanceHistoryType, LeaveType } from '@/generated/prisma'
 
 const userSchema = z.object({
   id: z.string(),
@@ -17,6 +17,7 @@ const leaveBalanceHistorySchema = z.object({
   leaveBalanceId: z.string(),
   change: z.number(),
   reason: z.string().optional(),
+  type: z.nativeEnum(LeaveBalanceHistoryType),
   createdAt: z.date(),
 })
 
