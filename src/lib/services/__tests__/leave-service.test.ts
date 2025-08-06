@@ -187,12 +187,24 @@ describe('leaveService', () => {
       }
 
       mockPrisma.membership.findUnique.mockResolvedValue(mockMembership)
-      mockPrisma.leaveBalance.findFirst.mockResolvedValue(mockLeaveBalance)
 
       mockPrisma.$transaction.mockImplementation(async (callback: any) => {
-        return callback(mockPrisma)
+        const mockTx = {
+          leaveBalance: {
+            findFirst: jest.fn().mockResolvedValue(mockLeaveBalance),
+            update: jest
+              .fn()
+              .mockResolvedValue({ ...mockLeaveBalance, remainingDays: 5 }),
+          },
+          leaveBalanceHistory: {
+            create: jest.fn().mockResolvedValue({}),
+          },
+          leave: {
+            create: jest.fn().mockResolvedValue(mockLeave),
+          },
+        }
+        return callback(mockTx)
       })
-      mockPrisma.leave.create.mockResolvedValue(mockLeave)
 
       const result = await leaveService.createLeave(
         'membership-1',
@@ -201,7 +213,7 @@ describe('leaveService', () => {
       )
 
       expect(result).toEqual(mockLeave)
-      expect(mockPrisma.leave.create).toHaveBeenCalled()
+      expect(mockPrisma.$transaction).toHaveBeenCalled()
     })
 
     it('should throw error for insufficient leave balance', async () => {
@@ -211,9 +223,15 @@ describe('leaveService', () => {
       }
 
       mockPrisma.membership.findUnique.mockResolvedValue(mockMembership)
-      mockPrisma.leaveBalance.findFirst.mockResolvedValue(mockLeaveBalance)
-      // Don't mock leave.create as it should not be called
-      mockPrisma.leave.create.mockClear()
+
+      mockPrisma.$transaction.mockImplementation(async (callback: any) => {
+        const mockTx = {
+          leaveBalance: {
+            findFirst: jest.fn().mockResolvedValue(mockLeaveBalance),
+          },
+        }
+        return callback(mockTx)
+      })
 
       await expect(
         leaveService.createLeave('membership-1', createData, mockUser)
@@ -232,16 +250,32 @@ describe('leaveService', () => {
         ...mockMembership,
         role: UserRole.MANAGER,
       }
+      const mockLeaveWithMembership = {
+        ...mockLeave,
+        membership: mockMembership,
+      }
 
       mockPrisma.membership.findUnique.mockResolvedValue(managerMembership)
-      mockPrisma.leave.findUnique.mockResolvedValue(mockLeave)
+      mockPrisma.leave.findUnique.mockResolvedValue(mockLeaveWithMembership)
 
       mockPrisma.$transaction.mockImplementation(async (callback: any) => {
-        return callback(mockPrisma)
-      })
-      mockPrisma.leave.update.mockResolvedValue({
-        ...mockLeave,
-        status: LeaveStatus.APPROVED,
+        const mockTx = {
+          leave: {
+            update: jest.fn().mockResolvedValue({
+              ...mockLeave,
+              status: LeaveStatus.APPROVED,
+            }),
+          },
+          leaveBalance: {
+            findUnique: jest.fn(),
+            update: jest.fn(),
+            create: jest.fn(),
+          },
+          leaveBalanceHistory: {
+            create: jest.fn(),
+          },
+        }
+        return callback(mockTx)
       })
 
       const result = await leaveService.reviewLeave(
@@ -252,7 +286,7 @@ describe('leaveService', () => {
       )
 
       expect(result.status).toBe(LeaveStatus.APPROVED)
-      expect(mockPrisma.leave.update).toHaveBeenCalled()
+      expect(mockPrisma.$transaction).toHaveBeenCalled()
     })
 
     it('should throw error for non-manager user', async () => {
@@ -291,12 +325,13 @@ describe('leaveService', () => {
 
   describe('deleteLeave', () => {
     it('should delete leave successfully', async () => {
-      mockPrisma.membership.findUnique.mockResolvedValue(mockMembership)
-      mockPrisma.leave.findUnique.mockResolvedValue(mockLeave)
+      const mockLeaveWithMembership = {
+        ...mockLeave,
+        membership: mockMembership,
+      }
 
-      mockPrisma.$transaction.mockImplementation(async (callback: any) => {
-        return callback(mockPrisma)
-      })
+      mockPrisma.membership.findUnique.mockResolvedValue(mockMembership)
+      mockPrisma.leave.findUnique.mockResolvedValue(mockLeaveWithMembership)
       mockPrisma.leave.delete.mockResolvedValue(mockLeave)
 
       await leaveService.deleteLeave(

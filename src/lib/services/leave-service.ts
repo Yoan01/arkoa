@@ -93,34 +93,63 @@ async function createLeave(
     throw new ApiError('Accès refusé', 403)
   }
 
-  // Check leave balance
-  const leaveBalance = await prisma.leaveBalance.findFirst({
-    where: {
-      membershipId: membership.id,
-      type: data.type,
-    },
-  })
-
   const workingDays = calculateWorkingDays(
     data.startDate,
     data.endDate,
     data.halfDayPeriod
   )
 
-  if (!leaveBalance || leaveBalance.remainingDays < workingDays) {
-    throw new ApiError('Solde de congés insuffisant', 400)
-  }
+  // Utiliser une transaction pour assurer la cohérence des données
+  return prisma.$transaction(async tx => {
+    // Vérifier et déduire temporairement le solde pour les congés payés et RTT
+    if (
+      workingDays > 0 &&
+      (data.type === LeaveType.PAID || data.type === LeaveType.RTT)
+    ) {
+      // Chercher le solde existant
+      const leaveBalance = await tx.leaveBalance.findFirst({
+        where: {
+          membershipId: membership.id,
+          type: data.type,
+        },
+      })
 
-  return prisma.leave.create({
-    data: {
-      membershipId: membership.id,
-      type: data.type,
-      startDate: data.startDate,
-      endDate: data.endDate,
-      halfDayPeriod: data.halfDayPeriod,
-      reason: data.reason,
-      status: LeaveStatus.PENDING,
-    },
+      if (!leaveBalance || leaveBalance.remainingDays < workingDays) {
+        throw new ApiError('Solde de congés insuffisant', 400)
+      }
+
+      // Déduire temporairement les jours du solde
+      await tx.leaveBalance.update({
+        where: { id: leaveBalance.id },
+        data: {
+          remainingDays: leaveBalance.remainingDays - workingDays,
+        },
+      })
+
+      // Enregistrer l'historique de la déduction
+      await tx.leaveBalanceHistory.create({
+        data: {
+          leaveBalanceId: leaveBalance.id,
+          change: -workingDays,
+          reason: `Déduction pour la demande de congé du ${dayjs(data.startDate).format('DD/MM/YYYY')} au ${dayjs(data.endDate).format('DD/MM/YYYY')}`,
+          actorId: user.id,
+          type: LeaveBalanceHistoryType.LEAVE_DEDUCTION,
+        },
+      })
+    }
+
+    // Créer la demande de congé
+    return tx.leave.create({
+      data: {
+        membershipId: membership.id,
+        type: data.type,
+        startDate: data.startDate,
+        endDate: data.endDate,
+        halfDayPeriod: data.halfDayPeriod,
+        reason: data.reason,
+        status: LeaveStatus.PENDING,
+      },
+    })
   })
 }
 
@@ -171,35 +200,35 @@ async function reviewLeave(
       },
     })
 
-    // Si le congé est refusé et qu'il s'agit d'un type qui consomme des jours de solde
+    // Calculer le nombre de jours de congé
+    const workingDays = calculateWorkingDays(
+      leave.startDate,
+      leave.endDate,
+      leave.halfDayPeriod
+    )
+
+    // Gérer les soldes selon le statut
     if (
-      data.status === LeaveStatus.REJECTED &&
+      workingDays > 0 &&
       (leave.type === LeaveType.PAID || leave.type === LeaveType.RTT)
     ) {
-      // Calculer le nombre de jours à restituer
-      const daysToRestore = calculateWorkingDays(
-        leave.startDate,
-        leave.endDate,
-        leave.halfDayPeriod
-      )
-
-      if (daysToRestore > 0) {
-        // Chercher le solde existant
-        let leaveBalance = await tx.leaveBalance.findUnique({
-          where: {
-            membershipId_type: {
-              membershipId: leave.membershipId,
-              type: leave.type,
-            },
+      // Chercher le solde existant
+      let leaveBalance = await tx.leaveBalance.findUnique({
+        where: {
+          membershipId_type: {
+            membershipId: leave.membershipId,
+            type: leave.type,
           },
-        })
+        },
+      })
 
+      if (data.status === LeaveStatus.REJECTED) {
+        // Restituer les jours lors du refus (si ils avaient été déduits temporairement)
         if (leaveBalance) {
-          // Mettre à jour le solde existant
           leaveBalance = await tx.leaveBalance.update({
             where: { id: leaveBalance.id },
             data: {
-              remainingDays: leaveBalance.remainingDays + daysToRestore,
+              remainingDays: leaveBalance.remainingDays + workingDays,
             },
           })
         } else {
@@ -208,7 +237,7 @@ async function reviewLeave(
             data: {
               membershipId: leave.membershipId,
               type: leave.type,
-              remainingDays: daysToRestore,
+              remainingDays: workingDays,
             },
           })
         }
@@ -217,7 +246,7 @@ async function reviewLeave(
         await tx.leaveBalanceHistory.create({
           data: {
             leaveBalanceId: leaveBalance.id,
-            change: daysToRestore,
+            change: workingDays,
             reason: `Restitution suite au refus du congé du ${dayjs(leave.startDate).format('DD/MM/YYYY')} au ${dayjs(leave.endDate).format('DD/MM/YYYY')}`,
             actorId: user.id,
             type: LeaveBalanceHistoryType.LEAVE_REFUND,
