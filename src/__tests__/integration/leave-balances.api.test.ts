@@ -372,6 +372,37 @@ describe("API Leave Balances et Member Leaves - Tests d'intégration", () => {
       expect(data.type).toBeDefined()
     })
 
+    it('PATCH /api/companies/[companyId]/memberships/[membershipId]/leaves/[leaveId] - devrait rejeter la modification avec solde insuffisant', async () => {
+      // Mock pour simuler un solde insuffisant
+      const { leaveService } = jest.requireMock(
+        '../../lib/services/leave-service'
+      )
+      leaveService.updateLeave.mockRejectedValueOnce(
+        new Error('Solde de congés insuffisant')
+      )
+
+      const req = new NextRequest(
+        'http://localhost:3000/api/companies/company-1/memberships/membership-1/leaves/leave-1',
+        {
+          method: 'PATCH',
+          body: JSON.stringify({
+            type: 'PAID',
+            startDate: '2024-01-15T00:00:00.000Z',
+            endDate: '2024-01-30T00:00:00.000Z', // 15 jours, plus que le solde disponible
+            reason: 'Extended vacation',
+          }),
+        }
+      )
+      const params = Promise.resolve({
+        companyId: 'company-1',
+        membershipId: 'membership-1',
+        leaveId: 'leave-1',
+      })
+
+      const response = await updateMemberLeave(req, { params })
+      expect(response.status).toBe(500)
+    })
+
     it('DELETE /api/companies/[companyId]/memberships/[membershipId]/leaves/[leaveId] - devrait supprimer un congé', async () => {
       const req = new NextRequest(
         'http://localhost:3000/api/companies/company-1/memberships/membership-1/leaves/leave-1',

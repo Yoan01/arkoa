@@ -3,6 +3,7 @@ import { z } from 'zod'
 
 import {
   HalfDayPeriod,
+  LeaveBalanceHistoryType,
   LeaveStatus,
   LeaveType,
   Prisma,
@@ -219,6 +220,7 @@ async function reviewLeave(
             change: daysToRestore,
             reason: `Restitution suite au refus du congé du ${dayjs(leave.startDate).format('DD/MM/YYYY')} au ${dayjs(leave.endDate).format('DD/MM/YYYY')}`,
             actorId: user.id,
+            type: LeaveBalanceHistoryType.LEAVE_REFUND,
           },
         })
       }
@@ -321,6 +323,38 @@ async function updateLeave(
 
   if (leave.status !== 'PENDING') {
     throw new ApiError('Seuls les congés en attente peuvent être modifiés', 400)
+  }
+
+  // Vérifier le solde de congés pour les types qui en consomment
+  if (data.type === LeaveType.PAID || data.type === LeaveType.RTT) {
+    const leaveBalance = await prisma.leaveBalance.findFirst({
+      where: {
+        membershipId: membershipId,
+        type: data.type,
+      },
+    })
+
+    const newWorkingDays = calculateWorkingDays(
+      data.startDate,
+      data.endDate,
+      data.halfDayPeriod
+    )
+
+    // Calculer les jours actuels du congé pour les restituer au solde
+    const currentWorkingDays = calculateWorkingDays(
+      leave.startDate,
+      leave.endDate,
+      leave.halfDayPeriod
+    )
+
+    // Calculer le solde disponible en tenant compte de la restitution du congé actuel
+    const availableDays = leaveBalance
+      ? leaveBalance.remainingDays + currentWorkingDays
+      : currentWorkingDays
+
+    if (!leaveBalance || availableDays < newWorkingDays) {
+      throw new ApiError('Solde de congés insuffisant', 400)
+    }
   }
 
   return prisma.leave.update({
