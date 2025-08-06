@@ -27,8 +27,6 @@ import {
 } from '@/components/ui/sidebar'
 import { signOut, useSession } from '@/lib/auth-client'
 
-import { ModeToggle } from './mode-toggle'
-
 export function NavUser({}) {
   const { isMobile } = useSidebar()
   const router = useRouter()
@@ -91,7 +89,7 @@ export function NavUser({}) {
                     {data.user.email}
                   </span>
                 </div>
-                <ModeToggle />
+                {/* <ModeToggle /> */}
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />

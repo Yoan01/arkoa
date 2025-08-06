@@ -135,6 +135,7 @@ export function AddLeaveDialog({ trigger, leave }: Props) {
         {
           onSuccess() {
             form.reset()
+            setIsHalfDay(false)
             toast.success('Demande de congé créée avec succès')
             setOpen(false)
           },
@@ -265,6 +266,7 @@ export function AddLeaveDialog({ trigger, leave }: Props) {
                           locale={fr}
                           mode='single'
                           selected={field.value}
+                          defaultMonth={field.value || new Date()}
                           onSelect={date => {
                             field.onChange(date)
                             if (
@@ -345,6 +347,7 @@ export function AddLeaveDialog({ trigger, leave }: Props) {
                           locale={fr}
                           mode='single'
                           selected={field.value}
+                          defaultMonth={field.value || startDate || new Date()}
                           onSelect={field.onChange}
                           disabled={date => date < startDate}
                           captionLayout='dropdown'
