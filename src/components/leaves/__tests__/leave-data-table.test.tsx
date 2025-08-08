@@ -460,7 +460,7 @@ describe('LeaveDataTable', () => {
       const headers = screen.getAllByTestId('table-head')
       headers.forEach(header => {
         expect(header).toHaveClass(
-          'px-4 py-2 text-center text-xs font-medium uppercase'
+          'px-2 py-2 text-center text-xs font-medium uppercase sm:px-4'
         )
       })
     })
@@ -478,7 +478,9 @@ describe('LeaveDataTable', () => {
 
       const cells = screen.getAllByTestId('table-cell')
       cells.forEach(cell => {
-        expect(cell).toHaveClass('px-4 py-3 text-center align-middle text-sm')
+        expect(cell).toHaveClass(
+          'px-2 py-3 text-center align-middle text-xs sm:px-4 sm:text-sm'
+        )
       })
     })
 

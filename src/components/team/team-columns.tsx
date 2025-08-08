@@ -36,7 +36,7 @@ export const teamColumns: ColumnDef<MembershipWithUserAndBalances>[] = [
             </AvatarFallback>
           </Avatar>
           <div className='grid flex-1 text-left text-sm leading-tight'>
-            <span className='truncate font-medium'>{user.name}</span>
+            <span className='font-medium'>{user.name}</span>
           </div>
         </div>
       )

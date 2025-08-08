@@ -16,37 +16,41 @@ export const LeaveRequestsCard: React.FC = () => {
 
   return (
     <Card className='shadow-sm transition-shadow hover:shadow-md'>
-      <CardContent className='px-6'>
-        <div className='mb-4 flex items-center justify-between'>
+      <CardContent className='px-4 sm:px-6'>
+        <div className='mb-3 flex items-center justify-between sm:mb-4'>
           <div className='flex items-center gap-2'>
-            <FileTextIcon className='h-5 w-5' />
-            <h3 className='font-medium'>Demandes en cours</h3>
+            <FileTextIcon className='h-4 w-4 sm:h-5 sm:w-5' />
+            <h3 className='text-sm font-medium sm:text-base'>
+              Demandes en cours
+            </h3>
           </div>
-          <Clock className='h-4 w-4 text-gray-400' />
+          <Clock className='h-3 w-3 text-gray-400 sm:h-4 sm:w-4' />
         </div>
 
-        <div className='mb-4 grid grid-cols-2 gap-4 text-center text-sm lg:grid-cols-4'>
+        <div className='mb-3 grid grid-cols-2 gap-2 text-center text-xs sm:mb-4 sm:gap-4 sm:text-sm lg:grid-cols-4'>
           <div>
-            <div className='text-lg font-bold text-orange-400'>
+            <div className='text-base font-bold text-orange-400 sm:text-lg'>
               {pendingRequests}
             </div>
-            <div>En attente</div>
+            <div className='text-xs sm:text-sm'>En attente</div>
           </div>
           <div>
-            <div className='text-primary text-lg font-bold'>
+            <div className='text-primary text-base font-bold sm:text-lg'>
               {approvedRequests}
             </div>
-            <div>Approuvées</div>
+            <div className='text-xs sm:text-sm'>Approuvées</div>
           </div>
           <div>
-            <div className='text-lg font-bold text-red-500'>
+            <div className='text-base font-bold text-red-500 sm:text-lg'>
               {rejectedRequests}
             </div>
-            <div>Rejetées</div>
+            <div className='text-xs sm:text-sm'>Rejetées</div>
           </div>
           <div>
-            <div className='text-lg font-bold'>{canceledRequests}</div>
-            <div>Annulées</div>
+            <div className='text-base font-bold sm:text-lg'>
+              {canceledRequests}
+            </div>
+            <div className='text-xs sm:text-sm'>Annulées</div>
           </div>
         </div>
 

@@ -148,16 +148,16 @@ export const CalendarView: React.FC = () => {
   return (
     <Card className='flex h-full flex-col border-0 bg-gradient-to-br from-white to-slate-50/50 shadow-lg'>
       <CardHeader className='border-b border-slate-100 bg-white/80 backdrop-blur-sm'>
-        <div className='flex items-center justify-between'>
+        <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
           <div className='flex items-center gap-3'>
             <div className='rounded-lg bg-blue-500/10 p-2'>
               <CalendarIcon className='h-5 w-5 text-blue-600' />
             </div>
-            <CardTitle className='text-xl font-semibold text-slate-800'>
+            <CardTitle className='text-lg font-semibold text-slate-800 sm:text-xl'>
               Calendrier des congés
             </CardTitle>
           </div>
-          <div className='flex items-center gap-3'>
+          <div className='flex flex-col gap-3 sm:flex-row sm:items-center'>
             <MonthPicker
               initialYear={currentDate.year()}
               date={selectedDateRange}
@@ -165,7 +165,7 @@ export const CalendarView: React.FC = () => {
               placeholder='Sélectionner un mois'
             />
             <Select value={viewMode} onValueChange={setViewMode}>
-              <SelectTrigger className='border-slate-200 bg-white/80 shadow-sm backdrop-blur-sm transition-colors hover:bg-white'>
+              <SelectTrigger className='w-full border-slate-200 bg-white/80 shadow-sm backdrop-blur-sm transition-colors hover:bg-white sm:w-auto'>
                 <SelectValue className='font-medium' />
               </SelectTrigger>
               <SelectContent>
@@ -242,126 +242,128 @@ export const CalendarView: React.FC = () => {
             )}
           </div>
         ) : (
-          <div className='grid h-full grid-cols-7 gap-2'>
-            {/* En-têtes des jours */}
-            {['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'].map(day => (
-              <div
-                key={day}
-                className='rounded-lg bg-slate-50 p-2 text-center text-sm font-semibold text-slate-600'
-              >
-                {day}
-              </div>
-            ))}
-
-            {/* Jours du mois précédent */}
-            {prevMonthDays.map((day, index) => (
-              <div
-                key={`prev-${index}`}
-                className='min-h-16 rounded-xl border border-slate-100 bg-slate-50/50 p-2 text-slate-400'
-              >
-                <div className='text-sm font-medium'>{day}</div>
-              </div>
-            ))}
-
-            {/* Jours du mois actuel */}
-            {Array.from({ length: daysInMonth }, (_, i) => {
-              const day = i + 1
-              const currentDay = currentDate.date(day)
-              const dateString = currentDay.format('YYYY-MM-DD')
-              const dayLeaves = mockLeaves.filter(leave =>
-                dayjs(dateString).isBetween(
-                  dayjs(leave.startDate),
-                  dayjs(leave.endDate),
-                  'day',
-                  '[]'
-                )
-              )
-
-              const isToday = currentDay.isSame(dayjs(), 'day')
-              const maxVisibleLeaves = 2
-              const visibleLeaves = dayLeaves.slice(0, maxVisibleLeaves)
-              const remainingCount = dayLeaves.length - maxVisibleLeaves
-
-              return (
+          <div className='overflow-x-auto'>
+            <div className='grid h-full min-w-[600px] grid-cols-7 gap-1 sm:gap-2'>
+              {/* En-têtes des jours */}
+              {['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'].map(day => (
                 <div
                   key={day}
-                  className={`min-h-16 cursor-pointer rounded-xl border p-2 transition-all duration-200 hover:border-slate-300 hover:bg-slate-50/80 hover:shadow-xs ${
-                    isToday
-                      ? 'border-blue-300 bg-gradient-to-br from-blue-50 to-blue-100/50 shadow-md'
-                      : 'border-slate-200 bg-white'
-                  }`}
-                  title={
-                    dayLeaves.length > 0
-                      ? `${dayLeaves.length} congé(s) ce jour`
-                      : ''
-                  }
+                  className='rounded-lg bg-slate-50 p-1 text-center text-xs font-semibold text-slate-600 sm:p-2 sm:text-sm'
                 >
-                  <div
-                    className={`mb-2 text-sm font-semibold ${
-                      isToday ? 'text-blue-700' : 'text-slate-700'
-                    }`}
-                  >
-                    {day}
-                  </div>
-                  <div className='space-y-1'>
-                    {visibleLeaves.map(leave => (
-                      <div
-                        key={leave.id}
-                        className={`truncate rounded-md border px-2 py-1 text-xs font-medium transition-colors ${
-                          leave.type === LeaveType.PAID
-                            ? 'border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100'
-                            : leave.type === LeaveType.SICK
-                              ? 'border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100'
-                              : 'border-violet-200 bg-violet-50 text-violet-700 hover:bg-violet-100'
-                        }`}
-                        title={`${leave.employeeName} - ${leaveTypeLabels[leave.type]}`}
-                      >
-                        {leave.employeeName}
-                      </div>
-                    ))}
-                    {remainingCount > 0 && (
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <div className='cursor-help rounded-md border border-slate-200 bg-slate-100 px-2 py-1 text-xs font-semibold text-slate-600 transition-colors hover:bg-slate-200'>
-                            +{remainingCount} autre
-                            {remainingCount > 1 ? 's' : ''}
-                          </div>
-                        </TooltipTrigger>
-                        <TooltipContent className='border border-slate-200 bg-white shadow-lg'>
-                          <div className='max-w-xs text-sm'>
-                            <div className='mb-2 font-semibold text-slate-800'>
-                              Autres personnes en congé:
-                            </div>
-                            <div className='space-y-1'>
-                              {dayLeaves
-                                .slice(maxVisibleLeaves)
-                                .map((leave, index) => (
-                                  <div
-                                    key={index}
-                                    className='font-medium text-slate-700'
-                                  >
-                                    {leave.employeeName}
-                                  </div>
-                                ))}
-                            </div>
-                          </div>
-                        </TooltipContent>
-                      </Tooltip>
-                    )}
-                  </div>
+                  {day}
                 </div>
-              )
-            })}
+              ))}
 
-            {/* Jours du mois suivant */}
-            {nextMonthDays.map((day, index) => (
-              <div
-                key={`next-${index}`}
-                className='min-h-16 rounded-xl border border-slate-100 bg-slate-50/50 p-2 text-slate-400'
-              >
-                <div className='text-sm font-medium'>{day}</div>
-              </div>
-            ))}
+              {/* Jours du mois précédent */}
+              {prevMonthDays.map((day, index) => (
+                <div
+                  key={`prev-${index}`}
+                  className='min-h-12 rounded-xl border border-slate-100 bg-slate-50/50 p-1 text-slate-400 sm:min-h-16 sm:p-2'
+                >
+                  <div className='text-xs font-medium sm:text-sm'>{day}</div>
+                </div>
+              ))}
+
+              {/* Jours du mois actuel */}
+              {Array.from({ length: daysInMonth }, (_, i) => {
+                const day = i + 1
+                const currentDay = currentDate.date(day)
+                const dateString = currentDay.format('YYYY-MM-DD')
+                const dayLeaves = mockLeaves.filter(leave =>
+                  dayjs(dateString).isBetween(
+                    dayjs(leave.startDate),
+                    dayjs(leave.endDate),
+                    'day',
+                    '[]'
+                  )
+                )
+
+                const isToday = currentDay.isSame(dayjs(), 'day')
+                const maxVisibleLeaves = 2
+                const visibleLeaves = dayLeaves.slice(0, maxVisibleLeaves)
+                const remainingCount = dayLeaves.length - maxVisibleLeaves
+
+                return (
+                  <div
+                    key={day}
+                    className={`min-h-12 cursor-pointer rounded-xl border p-1 transition-all duration-200 hover:border-slate-300 hover:bg-slate-50/80 hover:shadow-xs sm:min-h-16 sm:p-2 ${
+                      isToday
+                        ? 'border-blue-300 bg-gradient-to-br from-blue-50 to-blue-100/50 shadow-md'
+                        : 'border-slate-200 bg-white'
+                    }`}
+                    title={
+                      dayLeaves.length > 0
+                        ? `${dayLeaves.length} congé(s) ce jour`
+                        : ''
+                    }
+                  >
+                    <div
+                      className={`mb-1 text-xs font-semibold sm:mb-2 sm:text-sm ${
+                        isToday ? 'text-blue-700' : 'text-slate-700'
+                      }`}
+                    >
+                      {day}
+                    </div>
+                    <div className='space-y-0.5 sm:space-y-1'>
+                      {visibleLeaves.map(leave => (
+                        <div
+                          key={leave.id}
+                          className={`truncate rounded-md border px-1 py-0.5 text-xs font-medium transition-colors sm:px-2 sm:py-1 ${
+                            leave.type === LeaveType.PAID
+                              ? 'border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100'
+                              : leave.type === LeaveType.SICK
+                                ? 'border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100'
+                                : 'border-violet-200 bg-violet-50 text-violet-700 hover:bg-violet-100'
+                          }`}
+                          title={`${leave.employeeName} - ${leaveTypeLabels[leave.type]}`}
+                        >
+                          {leave.employeeName}
+                        </div>
+                      ))}
+                      {remainingCount > 0 && (
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <div className='cursor-help rounded-md border border-slate-200 bg-slate-100 px-2 py-1 text-xs font-semibold text-slate-600 transition-colors hover:bg-slate-200'>
+                              +{remainingCount} autre
+                              {remainingCount > 1 ? 's' : ''}
+                            </div>
+                          </TooltipTrigger>
+                          <TooltipContent className='border border-slate-200 bg-white shadow-lg'>
+                            <div className='max-w-xs text-sm'>
+                              <div className='mb-2 font-semibold text-slate-800'>
+                                Autres personnes en congé:
+                              </div>
+                              <div className='space-y-1'>
+                                {dayLeaves
+                                  .slice(maxVisibleLeaves)
+                                  .map((leave, index) => (
+                                    <div
+                                      key={index}
+                                      className='font-medium text-slate-700'
+                                    >
+                                      {leave.employeeName}
+                                    </div>
+                                  ))}
+                              </div>
+                            </div>
+                          </TooltipContent>
+                        </Tooltip>
+                      )}
+                    </div>
+                  </div>
+                )
+              })}
+
+              {/* Jours du mois suivant */}
+              {nextMonthDays.map((day, index) => (
+                <div
+                  key={`next-${index}`}
+                  className='min-h-12 rounded-xl border border-slate-100 bg-slate-50/50 p-1 text-slate-400 sm:min-h-16 sm:p-2'
+                >
+                  <div className='text-xs font-medium sm:text-sm'>{day}</div>
+                </div>
+              ))}
+            </div>
           </div>
         )}
       </CardContent>

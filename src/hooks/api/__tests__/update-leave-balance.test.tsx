@@ -34,6 +34,7 @@ describe('useUpdateLeaveBalance', () => {
     type: 'PAID',
     change: 5,
     reason: 'Adjustment for overtime work',
+    historyType: 'MANUEL_CREDIT',
   }
 
   const mockUpdatedBalance = {
@@ -208,6 +209,7 @@ describe('useUpdateLeaveBalance', () => {
       type: 'PAID',
       change: -3,
       reason: 'Sick leave deduction',
+      historyType: 'LEAVE_DEDUCTION',
     }
 
     mockFetch.mockResolvedValueOnce({

@@ -28,9 +28,9 @@ describe('useGetLeaveStats', () => {
   const companyId = 'company-1'
 
   const mockLeaveStats: LeaveStatsResponse = {
-    pending: 8,
-    approved: 32,
-    rejected: 5,
+    pendingLeaves: 8,
+    approvedLeaves: 32,
+    rejectedLeaves: 5,
   }
 
   beforeEach(() => {
@@ -128,9 +128,9 @@ describe('useGetLeaveStats', () => {
 
   it('should handle empty stats response', async () => {
     const emptyStats: LeaveStatsResponse = {
-      pending: 0,
-      approved: 0,
-      rejected: 0,
+      pendingLeaves: 0,
+      approvedLeaves: 0,
+      rejectedLeaves: 0,
     }
 
     const mockFetch = fetch as jest.MockedFunction<typeof fetch>
@@ -152,9 +152,9 @@ describe('useGetLeaveStats', () => {
 
   it('should handle stats with different values', async () => {
     const differentStats: LeaveStatsResponse = {
-      pending: 2,
-      approved: 8,
-      rejected: 0,
+      pendingLeaves: 2,
+      approvedLeaves: 8,
+      rejectedLeaves: 0,
     }
 
     const mockFetch = fetch as jest.MockedFunction<typeof fetch>

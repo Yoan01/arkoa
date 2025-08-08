@@ -193,7 +193,6 @@ export function AddCompanyDialog({ company }: Props) {
                     <Input
                       type='number'
                       placeholder='Entrer un nombre...'
-                      {...field}
                       value={field.value}
                       onChange={e => field.onChange(e.target.valueAsNumber)}
                       min={25}

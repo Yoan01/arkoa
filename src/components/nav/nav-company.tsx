@@ -25,7 +25,11 @@ import { AddCompanyDialog } from '../company/add-company-dialog'
 import { DialogAction } from '../ui/dialog-action'
 import { Logo } from '../ui/logo'
 
-export function NavCompany() {
+interface IProps {
+  className?: string
+}
+
+export function NavCompany({ className }: IProps) {
   const { state, isMobile } = useSidebar()
   const { data } = useSession()
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
@@ -54,7 +58,8 @@ export function NavCompany() {
           size={state === 'collapsed' ? 'sm' : 'lg'}
           className={cn(
             state === 'collapsed' &&
-              'mx-auto flex h-10 w-10 items-center justify-center p-2'
+              'mx-auto flex h-10 w-10 items-center justify-center p-2',
+            className
           )}
         >
           <div
