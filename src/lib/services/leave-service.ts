@@ -1,4 +1,3 @@
-import { User } from 'better-auth'
 import { z } from 'zod'
 
 import {
@@ -12,12 +11,11 @@ import {
 import dayjs from '@/lib/dayjs-config'
 import { ApiError } from '@/lib/errors'
 import { prisma } from '@/lib/prisma'
+import { AuthenticatedUser } from '@/lib/types/auth'
 import { CreateLeaveSchema } from '@/schemas/create-leave-schema'
 import { GetCalendarLeavesParams } from '@/schemas/queries/calendar-leaves-schema'
 import { ReviewLeaveSchema } from '@/schemas/review-leave-schema'
 import { UpdateLeaveSchema } from '@/schemas/update-leave-schema'
-
-type AuthenticatedUser = Pick<User, 'id'>
 
 // Fonction utilitaire pour calculer le nombre de jours ouvrés
 export const calculateWorkingDays = (

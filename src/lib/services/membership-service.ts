@@ -1,12 +1,10 @@
-import { User } from 'better-auth'
 import { z } from 'zod'
 
 import { ApiError } from '@/lib/errors'
 import { prisma } from '@/lib/prisma'
+import { AuthenticatedUser } from '@/lib/types/auth'
 import { InviteMemberSchema } from '@/schemas/invite-member-schema'
 import { UpdateMembershipSchema } from '@/schemas/update-membership-schema'
-
-type AuthenticatedUser = Pick<User, 'id'>
 
 async function getMemberships(companyId: string, user: AuthenticatedUser) {
   const currentMembership = await prisma.membership.findUnique({

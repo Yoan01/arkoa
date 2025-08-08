@@ -1,12 +1,10 @@
-import { User } from 'better-auth'
 import { z } from 'zod'
 
 import { ApiError } from '@/lib/errors'
 import { prisma } from '@/lib/prisma'
+import { AuthenticatedUser } from '@/lib/types/auth'
 import { CreateCompanySchema } from '@/schemas/create-company-schema'
 import { UpdateCompanySchema } from '@/schemas/update-company-schema'
-
-type AuthenticatedUser = Pick<User, 'id'>
 
 async function getCompaniesForUser(user: AuthenticatedUser) {
   const memberships = await prisma.membership.findMany({

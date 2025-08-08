@@ -1,12 +1,10 @@
-import { User } from 'better-auth'
 import { z } from 'zod'
 
 import { UserRole } from '@/generated/prisma'
 import { ApiError } from '@/lib/errors'
 import { prisma } from '@/lib/prisma'
+import { AuthenticatedUser } from '@/lib/types/auth'
 import { UpdateLeaveBalanceSchema } from '@/schemas/update-leave-balance-schema'
-
-type AuthenticatedUser = Pick<User, 'id'>
 
 async function getLeaveBalances(membershipId: string, user: AuthenticatedUser) {
   const membership = await prisma.membership.findUnique({
