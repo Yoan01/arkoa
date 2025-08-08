@@ -1,8 +1,9 @@
-import { render, screen, waitFor } from '@testing-library/react'
+import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { toast } from 'sonner'
 
 import { signIn } from '@/lib/auth-client'
+import { render } from '@/lib/test-utils'
 
 import SigninForm from '../signin-form'
 
@@ -30,6 +31,22 @@ jest.mock('next/link', () => {
     return <a href={href}>{children}</a>
   }
 })
+
+jest.mock('@/hooks/api/companies/get-companies', () => ({
+  useGetCompanies: jest.fn(() => ({
+    data: [],
+    isLoading: false,
+    error: null,
+    refetch: jest.fn().mockResolvedValue({ data: [] }),
+  })),
+}))
+
+jest.mock('@/stores/use-company-store', () => ({
+  useCompanyStore: jest.fn(() => ({
+    activeCompany: null,
+    setActiveCompany: jest.fn(),
+  })),
+}))
 
 const mockSignIn = signIn.email as jest.MockedFunction<typeof signIn.email>
 const _mockToastError = toast.error as jest.MockedFunction<typeof toast.error>
@@ -81,7 +98,6 @@ describe('SigninForm', () => {
       expect(mockSignIn).toHaveBeenCalledWith({
         email: 'test@example.com',
         password: 'ValidPassword123!',
-        callbackURL: '/',
       })
     })
   })
@@ -195,7 +211,6 @@ describe('SigninForm', () => {
       expect(mockSignIn).toHaveBeenCalledWith({
         email: 'test@example.com',
         password: 'ValidPassword123!',
-        callbackURL: '/',
       })
     })
   })
@@ -290,7 +305,6 @@ describe('SigninForm', () => {
       expect(mockSignIn).toHaveBeenCalledWith({
         email: 'test@example.com',
         password: 'P@ssw0rd!123',
-        callbackURL: '/',
       })
     })
   })

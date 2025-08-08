@@ -1,8 +1,9 @@
-import { render, screen } from '@testing-library/react'
+import { screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { toast } from 'sonner'
 
 import { signUp } from '@/lib/auth-client'
+import { render } from '@/lib/test-utils'
 
 import SignupForm from '../signup-form'
 
@@ -31,6 +32,22 @@ jest.mock('next/link', () => {
     return <a href={href}>{children}</a>
   }
 })
+
+jest.mock('@/hooks/api/companies/get-companies', () => ({
+  useGetCompanies: jest.fn(() => ({
+    data: [],
+    isLoading: false,
+    error: null,
+    refetch: jest.fn().mockResolvedValue({ data: [] }),
+  })),
+}))
+
+jest.mock('@/stores/use-company-store', () => ({
+  useCompanyStore: jest.fn(() => ({
+    activeCompany: null,
+    setActiveCompany: jest.fn(),
+  })),
+}))
 
 const mockSignUp = signUp.email as jest.MockedFunction<typeof signUp.email>
 const _mockToastSuccess = toast.success as jest.MockedFunction<
