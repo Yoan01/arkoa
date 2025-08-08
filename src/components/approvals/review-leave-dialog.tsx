@@ -135,7 +135,9 @@ export const ReviewLeaveDialog: React.FC<ReviewLeaveDialogProps> = ({
                 }`}
               >
                 {reviewLeave.isPending
-                  ? `${actionText.slice(0, -1)}ation...`
+                  ? isApproval
+                    ? 'Approbation...'
+                    : 'Rejet...'
                   : actionText}
               </Button>
             </div>
