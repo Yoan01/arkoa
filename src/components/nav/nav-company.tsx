@@ -36,6 +36,7 @@ export function NavCompany({ className }: IProps) {
 
   const { data: companies, isFetching } = useGetCompanies({
     enabled: isDropdownOpen,
+    refetchOnMount: 'always',
   })
 
   const { activeCompany, setActiveCompany } = useCompanyStore()
