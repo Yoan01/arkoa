@@ -9,7 +9,6 @@ import { useSession } from '@/lib/auth-client'
 import { useCompanyStore } from '@/stores/use-company-store'
 
 import { AppSidebar } from '../nav/app-sidebar'
-import { NavCompany } from '../nav/nav-company'
 import { SiteHeader } from '../nav/site-header'
 import { SidebarInset, SidebarProvider } from '../ui/sidebar'
 
@@ -45,7 +44,7 @@ export default function MainLayout({ children }: AuthLayoutProps) {
     <SidebarProvider>
       <AppSidebar variant='inset' />
       <SidebarInset>
-        {activeCompany && <SiteHeader />}
+        {<SiteHeader />}
         <div className='flex flex-1 flex-col'>
           <div className='@container/main flex flex-1 flex-col gap-2'>
             {!activeCompany ? (
@@ -54,7 +53,6 @@ export default function MainLayout({ children }: AuthLayoutProps) {
                   Vous n'avez encore aucune entreprise. <br />
                   Ajoutez-en une maintenant pour profiter de l'application !
                 </p>
-                <NavCompany className='w-auto' />
               </div>
             ) : (
               children

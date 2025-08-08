@@ -3,6 +3,7 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { LoaderCircleIcon } from 'lucide-react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
@@ -19,8 +20,11 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { PasswordInput } from '@/components/ui/password-input'
+import { useGetCompanies } from '@/hooks/api/companies/get-companies'
 import { signIn } from '@/lib/auth-client'
 import { passwordConstraint } from '@/lib/validator'
+import { UserCompanyInput } from '@/schemas/queries/user-company-schema'
+import { useCompanyStore } from '@/stores/use-company-store'
 
 import { Icons } from '../ui/icons'
 import { OrSeparator } from '../ui/or-separator'
@@ -32,6 +36,9 @@ const formSchema = z.object({
 
 export default function SigninForm() {
   const [isloading, setIsloading] = useState(false)
+  const router = useRouter()
+  const { activeCompany, setActiveCompany } = useCompanyStore()
+  const { refetch: refetchCompanies } = useGetCompanies({ enabled: false })
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -44,15 +51,52 @@ export default function SigninForm() {
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
       setIsloading(true)
-      await signIn.email({
+      const result = await signIn.email({
         email: values.email,
         password: values.password,
-        callbackURL: '/',
       })
-      setIsloading(false)
+
+      if (result.error) {
+        toast.error(
+          result.error.message ||
+            'Erreur lors de la connexion. Veuillez vérifier vos identifiants.'
+        )
+      } else {
+        toast.success('Connexion réussie !')
+
+        // Vérifier si l'utilisateur appartient à l'entreprise stockée
+        if (activeCompany) {
+          try {
+            const companiesResult = await refetchCompanies()
+            if (companiesResult.data) {
+              const belongsToStoredCompany = companiesResult.data.some(
+                (company: UserCompanyInput) => company.id === activeCompany.id
+              )
+
+              if (!belongsToStoredCompany) {
+                // L'utilisateur n'appartient pas à l'entreprise stockée
+                setActiveCompany(null)
+                toast.warning(
+                  "Vous n'appartenez plus à l'entreprise précédemment sélectionnée. Veuillez en choisir une nouvelle."
+                )
+              }
+            }
+          } catch (error) {
+            console.error(
+              "Erreur lors de la vérification de l'entreprise:",
+              error
+            )
+            // En cas d'erreur, on continue sans bloquer la connexion
+          }
+        }
+
+        router.push('/')
+      }
     } catch (error) {
       console.error('Form submission error', error)
       toast.error('Erreur lors de la connexion. Veuillez réessayer.')
+    } finally {
+      setIsloading(false)
     }
   }
 

@@ -1,7 +1,10 @@
 'use client'
 
 import { zodResolver } from '@hookform/resolvers/zod'
+import { LoaderCircleIcon } from 'lucide-react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 import { z } from 'zod'
@@ -17,8 +20,11 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { PasswordInput } from '@/components/ui/password-input'
+import { useGetCompanies } from '@/hooks/api/companies/get-companies'
 import { signUp } from '@/lib/auth-client'
 import { passwordConstraint } from '@/lib/validator'
+import { UserCompanyInput } from '@/schemas/queries/user-company-schema'
+import { useCompanyStore } from '@/stores/use-company-store'
 
 import { Icons } from '../ui/icons'
 import { OrSeparator } from '../ui/or-separator'
@@ -30,6 +36,11 @@ const formSchema = z.object({
 })
 
 export default function SignupForm() {
+  const [isloading, setIsloading] = useState(false)
+  const router = useRouter()
+  const { activeCompany, setActiveCompany } = useCompanyStore()
+  const { refetch: refetchCompanies } = useGetCompanies({ enabled: false })
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -39,21 +50,57 @@ export default function SignupForm() {
     },
   })
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
+  async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
-      signUp
-        .email({
-          email: values.email,
-          password: values.password,
-          name: values.name,
-          callbackURL: '/',
-        })
-        .then(() => {
-          toast.success('Votre compte a bien été créé.')
-        })
+      setIsloading(true)
+      const result = await signUp.email({
+        email: values.email,
+        password: values.password,
+        name: values.name,
+      })
+
+      if (result.error) {
+        toast.error(
+          result.error.message ||
+            'Erreur lors de la création du compte. Veuillez réessayer.'
+        )
+      } else {
+        toast.success('Votre compte a bien été créé ! Connexion en cours...')
+
+        // Vérifier si l'utilisateur appartient à l'entreprise stockée
+        if (activeCompany) {
+          try {
+            const companiesResult = await refetchCompanies()
+            if (companiesResult.data) {
+              const belongsToStoredCompany = companiesResult.data.some(
+                (company: UserCompanyInput) => company.id === activeCompany.id
+              )
+
+              if (!belongsToStoredCompany) {
+                // L'utilisateur n'appartient pas à l'entreprise stockée
+                setActiveCompany(null)
+                toast.warning(
+                  "Vous n'appartenez pas à l'entreprise précédemment sélectionnée. Veuillez en choisir une nouvelle."
+                )
+              }
+            }
+          } catch (error) {
+            console.error(
+              "Erreur lors de la vérification de l'entreprise:",
+              error
+            )
+            // En cas d'erreur, on continue sans bloquer la connexion
+          }
+        }
+
+        // L'utilisateur est automatiquement connecté après l'inscription
+        router.push('/')
+      }
     } catch (error) {
       console.error('Form submission error', error)
       toast.error('Erreur lors de la création du compte. Veuillez réessayer.')
+    } finally {
+      setIsloading(false)
     }
   }
 
@@ -112,8 +159,12 @@ export default function SignupForm() {
           )}
         />
 
-        <Button type='submit' className={'w-full'}>
-          S'inscrire
+        <Button type='submit' className={'w-full'} disabled={isloading}>
+          {isloading ? (
+            <LoaderCircleIcon className='animate-spin' />
+          ) : (
+            "S'inscrire"
+          )}
         </Button>
       </form>
 
