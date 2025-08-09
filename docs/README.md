@@ -200,10 +200,10 @@ pnpm test:all         # Tous les tests
 
 - **Authentification** : `/api/auth/*`
 - **Entreprises** : `/api/companies`
-- **Membres** : `/api/companies/{id}/memberships`
-- **Congés** : `/api/companies/{id}/memberships/{id}/leaves`
-- **Soldes** : `/api/companies/{id}/memberships/{id}/leave-balances`
-- **Statistiques** : `/api/companies/{id}/stats`
+- **Membres** : `/api/companies/{companyId}/memberships`
+- **Congés** : `/api/companies/{companyId}/memberships/{membershipId}/leaves`
+- **Soldes** : `/api/companies/{companyId}/memberships/{membershipId}/leave-balances`
+- **Statistiques** : `/api/companies/{companyId}/stats`
 
 ### Documentation API
 

@@ -394,20 +394,20 @@ L'API suit les conventions REST avec une structure hiérarchique :
 ```
 GET    /api/companies                           # Liste des entreprises
 POST   /api/companies                           # Créer une entreprise
-GET    /api/companies/{id}                      # Détails d'une entreprise
-PATCH  /api/companies/{id}                      # Modifier une entreprise
-DELETE /api/companies/{id}                      # Supprimer une entreprise
+GET    /api/companies/{companyId}               # Détails d'une entreprise
+PATCH  /api/companies/{companyId}               # Modifier une entreprise
+DELETE /api/companies/{companyId}               # Supprimer une entreprise
 
-GET    /api/companies/{id}/memberships          # Membres de l'entreprise
-POST   /api/companies/{id}/memberships          # Inviter un membre
-GET    /api/companies/{id}/memberships/{id}     # Détails d'un membre
-POST   /api/companies/{id}/memberships/{id}     # Modifier un membre
-DELETE /api/companies/{id}/memberships/{id}     # Supprimer un membre
+GET    /api/companies/{companyId}/memberships          # Membres de l'entreprise
+POST   /api/companies/{companyId}/memberships          # Inviter un membre
+GET    /api/companies/{companyId}/memberships/{membershipId}     # Détails d'un membre
+POST   /api/companies/{companyId}/memberships/{membershipId}     # Modifier un membre
+DELETE /api/companies/{companyId}/memberships/{membershipId}     # Supprimer un membre
 
-GET    /api/companies/{id}/memberships/{id}/leaves        # Congés d'un membre
-POST   /api/companies/{id}/memberships/{id}/leaves        # Créer un congé
-PATCH  /api/companies/{id}/memberships/{id}/leaves/{id}   # Modifier un congé
-DELETE /api/companies/{id}/memberships/{id}/leaves/{id}   # Supprimer un congé
+GET    /api/companies/{companyId}/memberships/{membershipId}/leaves        # Congés d'un membre
+POST   /api/companies/{companyId}/memberships/{membershipId}/leaves        # Créer un congé
+PATCH  /api/companies/{companyId}/memberships/{membershipId}/leaves/{leaveId}   # Modifier un congé
+DELETE /api/companies/{companyId}/memberships/{membershipId}/leaves/{leaveId}   # Supprimer un congé
 ```
 
 ### Services métier

@@ -202,10 +202,10 @@ PRODUCTION_APP_ID=production-compose-id
 ```
 GET    /api/companies                     # Liste des entreprises
 POST   /api/companies                     # Créer une entreprise
-GET    /api/companies/[id]/leaves         # Congés d'une entreprise
-POST   /api/companies/[id]/leaves/[id]/review  # Réviser un congé
-GET    /api/companies/[id]/memberships    # Membres d'une entreprise
-POST   /api/companies/[id]/memberships    # Inviter un membre
+GET    /api/companies/[companyId]/leaves         # Congés d'une entreprise
+POST   /api/companies/[companyId]/leaves/[leaveId]/review  # Réviser un congé
+GET    /api/companies/[companyId]/memberships    # Membres d'une entreprise
+POST   /api/companies/[companyId]/memberships    # Inviter un membre
 ```
 
 #### Authentification
@@ -213,9 +213,13 @@ POST   /api/companies/[id]/memberships    # Inviter un membre
 Toutes les routes API nécessitent une authentification via Better Auth :
 
 ```typescript
-// Headers requis
-Authorization: Bearer <token>
-Content-Type: application/json
+// Authentification via sessions (cookies) Better Auth - aucun header Authorization requis
+// Côté client : inclure les cookies
+fetch('/api/endpoint', {
+  method: 'GET',
+  credentials: 'include',
+  headers: { 'Content-Type': 'application/json' },
+})
 ```
 
 ## Manuel de mise à jour

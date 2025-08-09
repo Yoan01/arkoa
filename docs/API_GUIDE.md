@@ -181,8 +181,10 @@ PATCH /api/companies/{companyId}/memberships/{membershipId}/leaves/{leaveId}
 Content-Type: application/json
 
 {
+  "type": "PAID",
   "startDate": "2024-02-11T00:00:00Z",
   "endDate": "2024-02-15T00:00:00Z",
+  "halfDayPeriod": null,
   "reason": "Vacances modifiées"
 }
 ```
@@ -242,7 +244,8 @@ Content-Type: application/json
 {
   "type": "PAID",
   "change": 5.0,
-  "reason": "Ajustement manuel"
+  "reason": "Ajustement manuel",
+  "historyType": "MANUEL_CREDIT"
 }
 ```
 
