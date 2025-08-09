@@ -824,148 +824,63 @@ jobs:
 
 ### Health Checks
 
-```typescript
-// app/api/health/route.ts
-import { NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+> **Note** : Le système de health checks avancé est prévu pour Q1 2025. Actuellement, un endpoint de base est disponible.
 
-export async function GET() {
-  try {
-    // Vérifier la connexion à la base de données
-    await prisma.$queryRaw`SELECT 1`
-    
-    // Vérifier l'espace disque (exemple)
-    const diskUsage = await checkDiskUsage()
-    
-    // Vérifier la mémoire
-    const memoryUsage = process.memoryUsage()
-    
-    return NextResponse.json({
-      status: 'healthy',
-      timestamp: new Date().toISOString(),
-      version: process.env.npm_package_version,
-      uptime: process.uptime(),
-      database: 'connected',
-      memory: {
-        used: Math.round(memoryUsage.heapUsed / 1024 / 1024),
-        total: Math.round(memoryUsage.heapTotal / 1024 / 1024)
-      },
-      disk: diskUsage
-    })
-  } catch (error) {
-    return NextResponse.json(
-      {
-        status: 'unhealthy',
-        timestamp: new Date().toISOString(),
-        error: error instanceof Error ? error.message : 'Unknown error'
-      },
-      { status: 503 }
-    )
-  }
-}
+**Fonctionnalités actuellement disponibles :**
+- Endpoint `/api/health` basique
+- Vérification de la connexion base de données
+- Métriques mémoire de base
+- Status de l'application
 
-async function checkDiskUsage() {
-  // Implémentation de vérification de l'espace disque
-  return { available: '10GB', used: '5GB', percentage: 50 }
-}
-```
+**Fonctionnalités prévues (Q1 2025) :**
+- Health checks avancés avec métriques détaillées
+- Vérification de l'espace disque
+- Monitoring des services externes
+- Alertes automatiques en cas de problème
+- Dashboard de monitoring en temps réel
 
 ### Logging
 
-```typescript
-// lib/logger.ts
-import winston from 'winston'
+**Note** : Le système de logging avancé avec Winston est prévu pour une version future.
 
-const logger = winston.createLogger({
-  level: process.env.LOG_LEVEL || 'info',
-  format: winston.format.combine(
-    winston.format.timestamp(),
-    winston.format.errors({ stack: true }),
-    winston.format.json()
-  ),
-  defaultMeta: {
-    service: 'arkoa',
-    version: process.env.npm_package_version
-  },
-  transports: [
-    new winston.transports.File({ filename: 'logs/error.log', level: 'error' }),
-    new winston.transports.File({ filename: 'logs/combined.log' })
-  ]
-})
+Actuellement disponible :
+- Logs Next.js intégrés (console.log, console.error)
+- Logs Docker (docker logs)
+- Variables d'environnement LOG_LEVEL pour le contrôle
 
-if (process.env.NODE_ENV !== 'production') {
-  logger.add(new winston.transports.Console({
-    format: winston.format.simple()
-  }))
-}
-
-export { logger }
-```
+Prévu pour Q1 2025 :
+- Intégration Winston pour logging structuré
+- Rotation automatique des logs
+- Centralisation des logs
 
 ### Métriques avec Prometheus
 
-```typescript
-// lib/metrics.ts
-import client from 'prom-client'
+**Note** : L'intégration Prometheus est prévue pour Q1 2025.
 
-// Créer un registre pour les métriques
-const register = new client.Registry()
+Actuellement disponible :
+- Health checks via `/api/health`
+- Métriques Prisma (via le client généré)
+- Métriques système Docker
 
-// Métriques par défaut
-client.collectDefaultMetrics({ register })
-
-// Métriques personnalisées
-const httpRequestDuration = new client.Histogram({
-  name: 'http_request_duration_seconds',
-  help: 'Duration of HTTP requests in seconds',
-  labelNames: ['method', 'route', 'status'],
-  buckets: [0.1, 0.5, 1, 2, 5]
-})
-
-const httpRequestTotal = new client.Counter({
-  name: 'http_requests_total',
-  help: 'Total number of HTTP requests',
-  labelNames: ['method', 'route', 'status']
-})
-
-const activeUsers = new client.Gauge({
-  name: 'active_users_total',
-  help: 'Number of active users'
-})
-
-register.registerMetric(httpRequestDuration)
-register.registerMetric(httpRequestTotal)
-register.registerMetric(activeUsers)
-
-export { register, httpRequestDuration, httpRequestTotal, activeUsers }
-```
+Prévu pour Q1 2025 :
+- Métriques Prometheus personnalisées
+- Endpoint `/metrics` pour Prometheus
+- Dashboard Grafana
+- Alerting avec Alertmanager
 
 ### Alerting
 
-```yaml
-# alertmanager.yml
-global:
-  smtp_smarthost: 'smtp.gmail.com:587'
-  smtp_from: 'alerts@arkoa.app'
+**Note** : Le système d'alerting automatique avec Alertmanager est prévu pour Q1 2025.
 
-route:
-  group_by: ['alertname']
-  group_wait: 10s
-  group_interval: 10s
-  repeat_interval: 1h
-  receiver: 'web.hook'
+Actuellement disponible :
+- Notifications par email via Better Auth
+- Logs d'erreurs dans la console
+- Health checks manuels
 
-receivers:
-- name: 'web.hook'
-  email_configs:
-  - to: 'admin@arkoa.app'
-    subject: 'Arkoa Alert: {{ .GroupLabels.alertname }}'
-    body: |
-      {{ range .Alerts }}
-      Alert: {{ .Annotations.summary }}
-      Description: {{ .Annotations.description }}
-      {{ end }}
-```
+Prévu pour Q1 2025 :
+- Alerting automatique avec Alertmanager
+- Notifications Slack/Teams
+- Escalade automatique des incidents
 
 ## Rollback et récupération
 

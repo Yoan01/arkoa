@@ -232,22 +232,25 @@ Arkoa se positionne comme une alternative moderne aux solutions legacy, ciblant 
 
 ### 5. Tableaux de bord et statistiques
 
-#### 5.1 Dashboard employé
-- **Fonctionnalités** :
+**Note** : Les tableaux de bord avancés sont prévus pour les phases 2 et 3 du développement.
+
+#### 5.1 Dashboard employé (MVP - Phase 1)
+- **Fonctionnalités actuelles** :
   - Vue des soldes actuels
   - Historique des demandes
+- **Prévues Phase 2** :
   - Calendrier personnel
   - Prochaines absences de l'équipe
 
-#### 5.2 Dashboard manager
-- **Fonctionnalités** :
+#### 5.2 Dashboard manager (Phase 2)
+- **Fonctionnalités prévues** :
   - Demandes en attente d'approbation
   - Planning de l'équipe
   - Statistiques d'utilisation
   - Alertes de conflits
 
-#### 5.3 Dashboard RH/Admin
-- **Fonctionnalités** :
+#### 5.3 Dashboard RH/Admin (Phase 3)
+- **Fonctionnalités prévues** :
   - Vue d'ensemble entreprise
   - Statistiques détaillées
   - Rapports personnalisables

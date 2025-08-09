@@ -604,31 +604,18 @@ model Leave {
 
 ### Monitoring et métriques
 
-```typescript
-// Exemple de métriques Prometheus
-const httpRequestsTotal = new Counter({
-  name: 'http_requests_total',
-  help: 'Total number of HTTP requests',
-  labelNames: ['method', 'route', 'status']
-})
+**Note** : Le système de métriques avancées avec Prometheus est prévu pour une version future (voir roadmap Q1 2025).
 
-const httpRequestDuration = new Histogram({
-  name: 'http_request_duration_seconds',
-  help: 'Duration of HTTP requests in seconds',
-  labelNames: ['method', 'route']
-})
+Actuellement disponible :
+- Métriques Prisma intégrées (via le client généré)
+- Logs d'application Next.js
+- Métriques Docker (CPU, mémoire, réseau)
+- Health checks via `/api/health`
 
-const leaveRequestsTotal = new Counter({
-  name: 'leave_requests_total',
-  help: 'Total number of leave requests',
-  labelNames: ['type', 'status']
-})
-
-const activeUsersGauge = new Gauge({
-  name: 'active_users',
-  help: 'Number of active users'
-})
-```
+Prévu pour Q1 2025 :
+- Métriques Prometheus personnalisées
+- Dashboard de monitoring
+- Alerting automatique
 
 ## Tests
 

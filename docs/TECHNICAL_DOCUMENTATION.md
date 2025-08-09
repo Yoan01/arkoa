@@ -427,9 +427,9 @@ pnpm test:all
    ```
 
 3. **Métriques de performance**
-   - Temps de réponse API
-   - Utilisation mémoire/CPU
-   - Taille des bundles JavaScript
+   - Temps de réponse API (via logs d'application)
+   - Utilisation mémoire/CPU (via Docker stats)
+   - Taille des bundles JavaScript (via Next.js build)
 
 ### Support et maintenance
 

@@ -1061,860 +1061,107 @@ http {
 
 ### Système de logs de sécurité
 
-```typescript
-// lib/security-logger.ts
-import winston from 'winston'
-import { prisma } from './prisma'
+**Note** : Le système de logging avancé avec Winston est prévu pour Q1 2025.
 
-type SecurityEventType = 
-  | 'SIGN_IN'
-  | 'SIGN_OUT'
-  | 'FAILED_LOGIN'
-  | 'UNAUTHORIZED_ACCESS'
-  | 'RATE_LIMIT_EXCEEDED'
-  | 'CSRF_TOKEN_INVALID'
-  | 'SUSPICIOUS_ACTIVITY'
-  | 'DATA_BREACH_ATTEMPT'
-  | 'PRIVILEGE_ESCALATION'
+Actuellement disponible :
+- Logs de sécurité via Better Auth
+- Logs d'erreurs dans la console
+- Logs des événements d'authentification
+- Variables d'environnement LOG_LEVEL pour le contrôle
 
-interface SecurityEvent {
-  type: SecurityEventType
-  userId?: string
-  ip?: string
-  userAgent?: string
-  details?: Record<string, any>
-  severity?: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL'
-}
+Prévu pour Q1 2025 :
+- Intégration Winston pour logging structuré
+- Logs de sécurité centralisés
+- Détection d'anomalies automatique
+- Alertes en temps réel
+- Audit trail complet
 
-const securityLogger = winston.createLogger({
-  level: 'info',
-  format: winston.format.combine(
-    winston.format.timestamp(),
-    winston.format.json()
-  ),
-  transports: [
-    new winston.transports.File({ 
-      filename: 'logs/security.log',
-      level: 'info'
-    }),
-    new winston.transports.File({ 
-      filename: 'logs/security-errors.log',
-      level: 'error'
-    })
-  ]
-})
-
-export async function logSecurityEvent(event: SecurityEvent) {
-  const severity = event.severity || getSeverityForEventType(event.type)
-  
-  // Log dans Winston
-  securityLogger.log(severity.toLowerCase(), {
-    ...event,
-    severity,
-    timestamp: new Date().toISOString()
-  })
-  
-  // Sauvegarder en base pour analyse
-  try {
-    await prisma.securityEvent.create({
-      data: {
-        type: event.type,
-        userId: event.userId,
-        ip: event.ip,
-        userAgent: event.userAgent,
-        details: event.details || {},
-        severity
-      }
-    })
-  } catch (error) {
-    console.error('Erreur lors de la sauvegarde de l\'événement de sécurité:', error)
-  }
-  
-  // Alertes en temps réel pour les événements critiques
-  if (severity === 'CRITICAL') {
-    await sendSecurityAlert(event)
-  }
-  
-  // Détection d'anomalies
-  await detectAnomalies(event)
-}
-
-function getSeverityForEventType(type: SecurityEventType): 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL' {
-  const severityMap: Record<SecurityEventType, 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL'> = {
-    'SIGN_IN': 'LOW',
-    'SIGN_OUT': 'LOW',
-    'FAILED_LOGIN': 'MEDIUM',
-    'UNAUTHORIZED_ACCESS': 'HIGH',
-    'RATE_LIMIT_EXCEEDED': 'MEDIUM',
-    'CSRF_TOKEN_INVALID': 'HIGH',
-    'SUSPICIOUS_ACTIVITY': 'HIGH',
-    'DATA_BREACH_ATTEMPT': 'CRITICAL',
-    'PRIVILEGE_ESCALATION': 'CRITICAL'
-  }
-  
-  return severityMap[type] || 'MEDIUM'
-}
-
-async function sendSecurityAlert(event: SecurityEvent) {
-  // Envoyer une alerte par email/Slack/SMS
-  const alertMessage = `
-    🚨 ALERTE SÉCURITÉ CRITIQUE
-    
-    Type: ${event.type}
-    Utilisateur: ${event.userId || 'Anonyme'}
-    IP: ${event.ip || 'Inconnue'}
-    Heure: ${new Date().toISOString()}
-    
-    Détails: ${JSON.stringify(event.details, null, 2)}
-  `
-  
-  // Implémenter l'envoi d'alerte selon votre système
-  console.error(alertMessage)
-}
-
-async function detectAnomalies(event: SecurityEvent) {
-  if (!event.ip || !event.userId) return
-  
-  // Détecter les connexions depuis plusieurs pays
-  const recentEvents = await prisma.securityEvent.findMany({
-    where: {
-      userId: event.userId,
-      type: 'SIGN_IN',
-      createdAt: {
-        gte: new Date(Date.now() - 24 * 60 * 60 * 1000) // 24h
-      }
-    },
-    select: { ip: true }
-  })
-  
-  const uniqueIPs = new Set(recentEvents.map(e => e.ip))
-  
-  if (uniqueIPs.size > 3) {
-    await logSecurityEvent({
-      type: 'SUSPICIOUS_ACTIVITY',
-      userId: event.userId,
-      ip: event.ip,
-      details: {
-        reason: 'Multiple IPs in 24h',
-        ipCount: uniqueIPs.size,
-        ips: Array.from(uniqueIPs)
-      },
-      severity: 'HIGH'
-    })
-  }
-}
-```
+Types d'événements de sécurité surveillés :
+- Connexions et déconnexions
+- Tentatives de connexion échouées
+- Accès non autorisés
+- Dépassement de rate limiting
+- Tokens CSRF invalides
+- Activités suspectes
+- Tentatives d'escalade de privilèges
 
 ### Détection d'intrusion
 
-```typescript
-// lib/intrusion-detection.ts
-import { logSecurityEvent } from './security-logger'
+**Note** : Le système de détection d'intrusion automatique est prévu pour Q1 2025.
 
-interface IntrusionPattern {
-  name: string
-  description: string
-  check: (events: SecurityEvent[]) => boolean
-  severity: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL'
-}
+Actuellement disponible :
+- Protection contre les attaques par force brute via Better Auth
+- Rate limiting sur les endpoints sensibles
+- Validation stricte des permissions
+- Logs des tentatives d'accès non autorisées
 
-const intrusionPatterns: IntrusionPattern[] = [
-  {
-    name: 'Brute Force Attack',
-    description: 'Multiple failed login attempts',
-    check: (events) => {
-      const failedLogins = events.filter(e => e.type === 'FAILED_LOGIN')
-      return failedLogins.length > 5
-    },
-    severity: 'HIGH'
-  },
-  
-  {
-    name: 'Privilege Escalation',
-    description: 'Unauthorized access to admin functions',
-    check: (events) => {
-      return events.some(e => 
-        e.type === 'UNAUTHORIZED_ACCESS' && 
-        e.details?.permission?.includes('admin')
-      )
-    },
-    severity: 'CRITICAL'
-  },
-  
-  {
-    name: 'SQL Injection Attempt',
-    description: 'Suspicious SQL patterns in requests',
-    check: (events) => {
-      return events.some(e => 
-        e.details?.request && 
-        /\b(UNION|SELECT|INSERT|UPDATE|DELETE|DROP)\b/i.test(e.details.request)
-      )
-    },
-    severity: 'HIGH'
-  },
-  
-  {
-    name: 'Unusual Activity Pattern',
-    description: 'Activity outside normal hours',
-    check: (events) => {
-      const now = new Date()
-      const hour = now.getHours()
-      
-      // Activité entre 22h et 6h
-      if (hour >= 22 || hour <= 6) {
-        return events.length > 10
-      }
-      
-      return false
-    },
-    severity: 'MEDIUM'
-  }
-]
+Prévu pour Q1 2025 :
+- Détection automatique des patterns d'intrusion
+- Analyse comportementale des utilisateurs
+- Blocage automatique des IPs suspectes
+- Alertes en temps réel
 
-export async function runIntrusionDetection() {
-  const last24Hours = new Date(Date.now() - 24 * 60 * 60 * 1000)
-  
-  // Récupérer les événements des dernières 24h
-  const recentEvents = await prisma.securityEvent.findMany({
-    where: {
-      createdAt: {
-        gte: last24Hours
-      }
-    },
-    orderBy: {
-      createdAt: 'desc'
-    }
-  })
-  
-  // Grouper par IP pour détecter les patterns
-  const eventsByIP = groupBy(recentEvents, 'ip')
-  
-  for (const [ip, events] of Object.entries(eventsByIP)) {
-    for (const pattern of intrusionPatterns) {
-      if (pattern.check(events)) {
-        await logSecurityEvent({
-          type: 'SUSPICIOUS_ACTIVITY',
-          ip,
-          details: {
-            pattern: pattern.name,
-            description: pattern.description,
-            eventCount: events.length,
-            timeWindow: '24h'
-          },
-          severity: pattern.severity
-        })
-        
-        // Bloquer l'IP si pattern critique
-        if (pattern.severity === 'CRITICAL') {
-          await blockIP(ip, pattern.name)
-        }
-      }
-    }
-  }
-}
-
-function groupBy<T>(array: T[], key: keyof T): Record<string, T[]> {
-  return array.reduce((groups, item) => {
-    const group = String(item[key])
-    groups[group] = groups[group] || []
-    groups[group].push(item)
-    return groups
-  }, {} as Record<string, T[]>)
-}
-
-async function blockIP(ip: string, reason: string) {
-  // Ajouter l'IP à la liste noire
-  await prisma.blockedIP.create({
-    data: {
-      ip,
-      reason,
-      blockedAt: new Date(),
-      expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000) // 24h
-    }
-  })
-  
-  await logSecurityEvent({
-    type: 'SUSPICIOUS_ACTIVITY',
-    ip,
-    details: {
-      action: 'IP_BLOCKED',
-      reason,
-      duration: '24h'
-    },
-    severity: 'CRITICAL'
-  })
-}
-
-// Vérifier si une IP est bloquée
-export async function isIPBlacklisted(ip: string): Promise<boolean> {
-  const blocked = await prisma.blockedIP.findFirst({
-    where: {
-      ip,
-      expiresAt: {
-        gt: new Date()
-      }
-    }
-  })
-  
-  return !!blocked
-}
-```
+Patterns de détection prévus :
+- **Attaques par force brute** : Multiples tentatives de connexion échouées
+- **Escalade de privilèges** : Accès non autorisé aux fonctions admin
+- **Injection SQL** : Patterns SQL suspects dans les requêtes
+- **Activité inhabituelle** : Activité en dehors des heures normales
 
 ## Gestion des incidents
 
 ### Plan de réponse aux incidents
 
-```typescript
-// lib/incident-response.ts
-import { logSecurityEvent } from './security-logger'
+> **Note** : Le système de gestion automatique des incidents est prévu pour Q1 2025. Actuellement, la gestion des incidents se fait manuellement selon les procédures définies ci-dessous.
 
-type IncidentSeverity = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL'
-type IncidentStatus = 'OPEN' | 'INVESTIGATING' | 'CONTAINED' | 'RESOLVED'
+**Fonctionnalités actuellement disponibles :**
+- Logging manuel des incidents de sécurité
+- Procédures de réponse documentées
+- Contacts d'urgence définis
+- Checklist de réponse aux incidents
 
-interface SecurityIncident {
-  id: string
-  type: string
-  severity: IncidentSeverity
-  status: IncidentStatus
-  description: string
-  affectedUsers?: string[]
-  affectedSystems?: string[]
-  detectedAt: Date
-  containedAt?: Date
-  resolvedAt?: Date
-  actions: IncidentAction[]
-}
-
-interface IncidentAction {
-  timestamp: Date
-  action: string
-  performedBy: string
-  details: string
-}
-
-class IncidentResponseManager {
-  async createIncident(incident: Omit<SecurityIncident, 'id' | 'detectedAt' | 'actions'>): Promise<SecurityIncident> {
-    const newIncident: SecurityIncident = {
-      ...incident,
-      id: generateIncidentId(),
-      detectedAt: new Date(),
-      actions: []
-    }
-    
-    // Sauvegarder l'incident
-    await this.saveIncident(newIncident)
-    
-    // Déclencher la réponse automatique
-    await this.triggerAutomaticResponse(newIncident)
-    
-    // Notifier l'équipe de sécurité
-    await this.notifySecurityTeam(newIncident)
-    
-    return newIncident
-  }
-  
-  async triggerAutomaticResponse(incident: SecurityIncident) {
-    const actions: IncidentAction[] = []
-    
-    switch (incident.severity) {
-      case 'CRITICAL':
-        // Isoler les systèmes affectés
-        if (incident.affectedSystems) {
-          for (const system of incident.affectedSystems) {
-            await this.isolateSystem(system)
-            actions.push({
-              timestamp: new Date(),
-              action: 'SYSTEM_ISOLATED',
-              performedBy: 'AUTOMATED',
-              details: `Système ${system} isolé automatiquement`
-            })
-          }
-        }
-        
-        // Révoquer les sessions des utilisateurs affectés
-        if (incident.affectedUsers) {
-          for (const userId of incident.affectedUsers) {
-            await this.revokeUserSessions(userId)
-            actions.push({
-              timestamp: new Date(),
-              action: 'SESSIONS_REVOKED',
-              performedBy: 'AUTOMATED',
-              details: `Sessions révoquées pour l'utilisateur ${userId}`
-            })
-          }
-        }
-        break
-        
-      case 'HIGH':
-        // Augmenter le niveau de monitoring
-        await this.increaseMonitoring()
-        actions.push({
-          timestamp: new Date(),
-          action: 'MONITORING_INCREASED',
-          performedBy: 'AUTOMATED',
-          details: 'Niveau de monitoring augmenté'
-        })
-        break
-    }
-    
-    // Enregistrer les actions
-    incident.actions.push(...actions)
-    await this.saveIncident(incident)
-  }
-  
-  async containIncident(incidentId: string, containmentActions: string[]): Promise<void> {
-    const incident = await this.getIncident(incidentId)
-    if (!incident) throw new Error('Incident non trouvé')
-    
-    incident.status = 'CONTAINED'
-    incident.containedAt = new Date()
-    
-    for (const action of containmentActions) {
-      incident.actions.push({
-        timestamp: new Date(),
-        action: 'CONTAINMENT_ACTION',
-        performedBy: 'SECURITY_TEAM',
-        details: action
-      })
-    }
-    
-    await this.saveIncident(incident)
-    await this.notifyStakeholders(incident, 'CONTAINED')
-  }
-  
-  async resolveIncident(incidentId: string, resolution: string): Promise<void> {
-    const incident = await this.getIncident(incidentId)
-    if (!incident) throw new Error('Incident non trouvé')
-    
-    incident.status = 'RESOLVED'
-    incident.resolvedAt = new Date()
-    
-    incident.actions.push({
-      timestamp: new Date(),
-      action: 'INCIDENT_RESOLVED',
-      performedBy: 'SECURITY_TEAM',
-      details: resolution
-    })
-    
-    await this.saveIncident(incident)
-    await this.generateIncidentReport(incident)
-    await this.notifyStakeholders(incident, 'RESOLVED')
-  }
-  
-  private async isolateSystem(system: string) {
-    // Implémenter l'isolation du système
-    console.log(`Isolating system: ${system}`)
-  }
-  
-  private async revokeUserSessions(userId: string) {
-    // Révoquer toutes les sessions de l'utilisateur
-    await prisma.session.deleteMany({
-      where: { userId }
-    })
-  }
-  
-  private async increaseMonitoring() {
-    // Augmenter la fréquence de monitoring
-    console.log('Increasing monitoring level')
-  }
-  
-  private async saveIncident(incident: SecurityIncident) {
-    await prisma.securityIncident.upsert({
-      where: { id: incident.id },
-      update: {
-        status: incident.status,
-        containedAt: incident.containedAt,
-        resolvedAt: incident.resolvedAt,
-        actions: incident.actions
-      },
-      create: {
-        id: incident.id,
-        type: incident.type,
-        severity: incident.severity,
-        status: incident.status,
-        description: incident.description,
-        affectedUsers: incident.affectedUsers || [],
-        affectedSystems: incident.affectedSystems || [],
-        detectedAt: incident.detectedAt,
-        actions: incident.actions
-      }
-    })
-  }
-  
-  private async getIncident(id: string): Promise<SecurityIncident | null> {
-    const incident = await prisma.securityIncident.findUnique({
-      where: { id }
-    })
-    
-    return incident as SecurityIncident | null
-  }
-  
-  private async notifySecurityTeam(incident: SecurityIncident) {
-    // Implémenter la notification de l'équipe de sécurité
-    console.log(`Notifying security team about incident: ${incident.id}`)
-  }
-  
-  private async notifyStakeholders(incident: SecurityIncident, status: string) {
-    // Implémenter la notification des parties prenantes
-    console.log(`Notifying stakeholders: incident ${incident.id} is ${status}`)
-  }
-  
-  private async generateIncidentReport(incident: SecurityIncident) {
-    // Générer un rapport d'incident
-    const report = {
-      incidentId: incident.id,
-      type: incident.type,
-      severity: incident.severity,
-      timeline: {
-        detected: incident.detectedAt,
-        contained: incident.containedAt,
-        resolved: incident.resolvedAt
-      },
-      actions: incident.actions,
-      lessonsLearned: [],
-      recommendations: []
-    }
-    
-    console.log('Incident report generated:', report)
-  }
-}
-
-function generateIncidentId(): string {
-  const timestamp = Date.now().toString(36)
-  const random = Math.random().toString(36).substring(2, 8)
-  return `INC-${timestamp}-${random}`.toUpperCase()
-}
-
-export const incidentManager = new IncidentResponseManager()
-```
+**Fonctionnalités prévues (Q1 2025) :**
+- Système automatisé de gestion des incidents
+- Classification automatique par sévérité
+- Réponse automatique selon le type d'incident
+- Isolation automatique des systèmes compromis
+- Révocation automatique des sessions
+- Notifications automatiques à l'équipe de sécurité
 
 ## Conformité et audit
 
 ### Audit trail
 
-```typescript
-// lib/audit.ts
-import { prisma } from './prisma'
+> **Note** : Le système d'audit avancé est prévu pour Q1 2025. Actuellement, l'audit se fait via les logs de base de données et les logs d'application.
 
-type AuditAction = 
-  | 'CREATE'
-  | 'READ'
-  | 'UPDATE'
-  | 'DELETE'
-  | 'LOGIN'
-  | 'LOGOUT'
-  | 'PERMISSION_CHANGE'
-  | 'DATA_EXPORT'
-  | 'SYSTEM_CONFIG'
+**Fonctionnalités actuellement disponibles :**
+- Logs de base de données automatiques
+- Logs d'authentification via Better Auth
+- Logs d'erreurs via l'application
+- Traçabilité des modifications de données
 
-interface AuditEntry {
-  userId: string
-  action: AuditAction
-  resource: string
-  resourceId?: string
-  oldValues?: Record<string, any>
-  newValues?: Record<string, any>
-  ip?: string
-  userAgent?: string
-  timestamp: Date
-}
-
-export async function createAuditEntry(entry: Omit<AuditEntry, 'timestamp'>) {
-  await prisma.auditLog.create({
-    data: {
-      ...entry,
-      timestamp: new Date(),
-      oldValues: entry.oldValues || {},
-      newValues: entry.newValues || {}
-    }
-  })
-}
-
-// Middleware d'audit pour Prisma
-export const auditMiddleware = {
-  async $allOperations({ operation, model, args, query }) {
-    const result = await query(args)
-    
-    // Auditer les opérations sensibles
-    if (['create', 'update', 'delete'].includes(operation)) {
-      const userId = getCurrentUserId() // À implémenter selon votre contexte
-      
-      if (userId) {
-        await createAuditEntry({
-          userId,
-          action: operation.toUpperCase() as AuditAction,
-          resource: model,
-          resourceId: result?.id || args.where?.id,
-          oldValues: operation === 'update' ? await getPreviousValues(model, args.where) : undefined,
-          newValues: operation !== 'delete' ? args.data : undefined
-        })
-      }
-    }
-    
-    return result
-  }
-}
-
-async function getPreviousValues(model: string, where: any) {
-  // Récupérer les valeurs précédentes pour l'audit
-  try {
-    return await (prisma as any)[model].findUnique({ where })
-  } catch {
-    return null
-  }
-}
-
-function getCurrentUserId(): string | null {
-  // Implémenter selon votre système d'authentification
-  return null
-}
-
-// Génération de rapports d'audit
-export async function generateAuditReport(startDate: Date, endDate: Date) {
-  const auditEntries = await prisma.auditLog.findMany({
-    where: {
-      timestamp: {
-        gte: startDate,
-        lte: endDate
-      }
-    },
-    include: {
-      user: {
-        select: {
-          name: true,
-          email: true,
-          role: true
-        }
-      }
-    },
-    orderBy: {
-      timestamp: 'desc'
-    }
-  })
-  
-  // Analyser les données d'audit
-  const summary = {
-    totalActions: auditEntries.length,
-    actionsByType: groupBy(auditEntries, 'action'),
-    userActivity: groupBy(auditEntries, 'userId'),
-    resourceAccess: groupBy(auditEntries, 'resource'),
-    suspiciousActivity: auditEntries.filter(entry => 
-      isSuspiciousActivity(entry)
-    )
-  }
-  
-  return {
-    period: { startDate, endDate },
-    summary,
-    entries: auditEntries
-  }
-}
-
-function isSuspiciousActivity(entry: any): boolean {
-  // Détecter les activités suspectes
-  const suspiciousPatterns = [
-    // Accès en dehors des heures de travail
-    () => {
-      const hour = entry.timestamp.getHours()
-      return hour < 6 || hour > 22
-    },
-    
-    // Modifications massives
-    () => {
-      return entry.action === 'DELETE' && entry.resource === 'User'
-    },
-    
-    // Changements de permissions
-    () => {
-      return entry.action === 'PERMISSION_CHANGE'
-    }
-  ]
-  
-  return suspiciousPatterns.some(pattern => pattern())
-}
-```
+**Fonctionnalités prévues (Q1 2025) :**
+- Système d'audit trail complet
+- Middleware d'audit automatique
+- Audit des actions sensibles
+- Rapports d'audit automatisés
+- Conformité RGPD renforcée
 
 ### Conformité RGPD
 
-```typescript
-// lib/gdpr-compliance.ts
-import { prisma } from './prisma'
-import { encrypt, decrypt } from './crypto'
+> **Note** : Le système de conformité RGPD avancé est prévu pour Q1 2025. Actuellement, les fonctionnalités de base sont implémentées.
 
-export class GDPRComplianceManager {
-  /**
-   * Droit d'accès - Article 15 RGPD
-   */
-  async exportUserData(userId: string) {
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      include: {
-        leaves: true,
-        memberships: true,
-        auditLogs: true
-      }
-    })
-    
-    if (!user) {
-      throw new Error('Utilisateur non trouvé')
-    }
-    
-    // Créer un export complet des données
-    const exportData = {
-      personalData: {
-        name: user.name,
-        email: user.email,
-        role: user.role,
-        createdAt: user.createdAt,
-        updatedAt: user.updatedAt
-      },
-      activityData: {
-        leaves: user.leaves.map(leave => ({
-          type: leave.type,
-          startDate: leave.startDate,
-          endDate: leave.endDate,
-          status: leave.status,
-          createdAt: leave.createdAt
-        })),
-        memberships: user.memberships.map(membership => ({
-          companyId: membership.companyId,
-          role: membership.role,
-          joinedAt: membership.createdAt
-        }))
-      },
-      auditTrail: user.auditLogs.map(log => ({
-        action: log.action,
-        resource: log.resource,
-        timestamp: log.timestamp
-      }))
-    }
-    
-    // Log de l'export
-    await createAuditEntry({
-      userId,
-      action: 'DATA_EXPORT',
-      resource: 'User',
-      resourceId: userId
-    })
-    
-    return exportData
-  }
-  
-  /**
-   * Droit à l'effacement - Article 17 RGPD
-   */
-  async deleteUserData(userId: string, reason: string) {
-    const user = await prisma.user.findUnique({
-      where: { id: userId }
-    })
-    
-    if (!user) {
-      throw new Error('Utilisateur non trouvé')
-    }
-    
-    // Vérifier si l'effacement est possible
-    const canDelete = await this.canDeleteUserData(userId)
-    if (!canDelete.allowed) {
-      throw new Error(`Suppression impossible: ${canDelete.reason}`)
-    }
-    
-    // Anonymiser plutôt que supprimer pour préserver l'intégrité
-    await this.anonymizeUserData(userId)
-    
-    // Log de la suppression
-    await createAuditEntry({
-      userId,
-      action: 'DELETE',
-      resource: 'User',
-      resourceId: userId,
-      newValues: { reason, anonymized: true }
-    })
-  }
-  
-  /**
-   * Droit de rectification - Article 16 RGPD
-   */
-  async updateUserData(userId: string, updates: any, requestedBy: string) {
-    const oldData = await prisma.user.findUnique({
-      where: { id: userId }
-    })
-    
-    const updatedUser = await prisma.user.update({
-      where: { id: userId },
-      data: updates
-    })
-    
-    // Log de la rectification
-    await createAuditEntry({
-      userId: requestedBy,
-      action: 'UPDATE',
-      resource: 'User',
-      resourceId: userId,
-      oldValues: oldData,
-      newValues: updates
-    })
-    
-    return updatedUser
-  }
-  
-  private async canDeleteUserData(userId: string) {
-    // Vérifier les obligations légales de conservation
-    const activeLeaves = await prisma.leave.count({
-      where: {
-        userId,
-        status: 'PENDING'
-      }
-    })
-    
-    if (activeLeaves > 0) {
-      return {
-        allowed: false,
-        reason: 'Demandes de congés en cours'
-      }
-    }
-    
-    // Vérifier la période de conservation légale (ex: 5 ans)
-    const user = await prisma.user.findUnique({
-      where: { id: userId }
-    })
-    
-    const retentionPeriod = 5 * 365 * 24 * 60 * 60 * 1000 // 5 ans
-    const canDeleteAfter = new Date(user!.createdAt.getTime() + retentionPeriod)
-    
-    if (new Date() < canDeleteAfter) {
-      return {
-        allowed: false,
-        reason: `Période de conservation légale (jusqu'au ${canDeleteAfter.toLocaleDateString()})`
-      }
-    }
-    
-    return { allowed: true }
-  }
-  
-  private async anonymizeUserData(userId: string) {
-    // Anonymiser les données personnelles
-    await prisma.user.update({
-      where: { id: userId },
-      data: {
-        name: `Utilisateur anonymisé ${userId.slice(-8)}`,
-        email: `anonymized-${userId.slice(-8)}@deleted.local`,
-        isActive: false,
-        deletedAt: new Date()
-      }
-    })
-    
-    // Anonymiser les données liées
-    await prisma.leave.updateMany({
-      where: { userId },
-      data: {
-        notes: 'Données anonymisées'
-      }
-    })
-  }
-}
+**Fonctionnalités actuellement disponibles :**
+- Gestion des consentements utilisateur
+- Suppression des données utilisateur
+- Chiffrement des données sensibles
+- Politique de confidentialité
 
-export const gdprManager = new GDPRComplianceManager()
-```
+**Fonctionnalités prévues (Q1 2025) :**
+- Export automatique des données utilisateur
+- Gestion avancée des consentements
+- Audit trail RGPD complet
+- Rapports de conformité automatisés
+- Anonymisation automatique des données
 
 ## Checklist de sécurité
 
