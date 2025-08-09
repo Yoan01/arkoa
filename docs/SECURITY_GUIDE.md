@@ -1250,7 +1250,7 @@ testssl.sh https://arkoa.app
 
 - **Analyse statique** : ESLint Security, Semgrep, SonarQube
 - **Tests de pénétration** : OWASP ZAP, Burp Suite, Nessus
-- **Monitoring** : Sentry, LogRocket, Datadog
+- **Monitoring** : Logs système, Health checks
 - **Chiffrement** : Let's Encrypt, HashiCorp Vault
 
 ### Formation et sensibilisation

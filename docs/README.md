@@ -122,11 +122,8 @@ pnpm install
 ```
 
 3. **Configuration de l'environnement**
-```bash
-cp .env.example .env.local
-```
 
-Configurer les variables d'environnement :
+Créer un fichier `.env.local` et configurer les variables d'environnement :
 ```env
 # Base de données
 DATABASE_URL="postgresql://user:password@localhost:5432/arkoa"
@@ -140,10 +137,9 @@ NEXT_PUBLIC_APP_URL="http://localhost:3000"
 NODE_ENV="development"
 ```
 
-4. **Initialiser la base de données**
+4. **Générer le client Prisma**
 ```bash
-pnpm db:push
-pnpm db:seed
+npx prisma generate
 ```
 
 5. **Lancer le serveur de développement**
@@ -174,25 +170,28 @@ pnpm dev              # Serveur de développement
 pnpm build            # Build de production
 pnpm start            # Serveur de production
 pnpm lint             # Linting ESLint
-pnpm type-check       # Vérification TypeScript
+pnpm lint:fix         # Correction automatique ESLint
+pnpm ts:fix           # Vérification TypeScript
 
 # Base de données
-pnpm db:push          # Synchroniser le schéma
-pnpm db:migrate       # Créer une migration
-pnpm db:seed          # Peupler la base de données
-pnpm db:studio        # Interface Prisma Studio
-pnpm db:reset         # Réinitialiser la base
+npx prisma generate   # Générer le client Prisma
+npx prisma db push    # Synchroniser le schéma
+npx prisma migrate dev # Créer une migration
+npx prisma studio     # Interface Prisma Studio
 
 # Tests
 pnpm test             # Tests unitaires
 pnpm test:watch       # Tests en mode watch
 pnpm test:coverage    # Couverture de tests
+pnpm test:ci          # Tests pour CI
+pnpm test:integration # Tests d'intégration
+pnpm test:integration:watch # Tests d'intégration en mode watch
+pnpm test:integration:coverage # Couverture tests d'intégration
+pnpm test:integration:ci # Tests d'intégration pour CI
 pnpm test:e2e         # Tests end-to-end
-
-# Docker
-pnpm docker:build     # Build de l'image Docker
-pnpm docker:up        # Lancer avec Docker Compose
-pnpm docker:down      # Arrêter Docker Compose
+pnpm test:e2e:ui      # Tests e2e avec interface
+pnpm test:e2e:headed  # Tests e2e en mode headed
+pnpm test:all         # Tous les tests
 ```
 
 ## API et intégrations
@@ -387,5 +386,5 @@ Ce projet est sous licence MIT. Voir le fichier [LICENSE](../LICENSE) pour plus 
 
 **Arkoa** - Simplifiez la gestion des congés de votre entreprise  
 **Version** : 1.0.0  
-**Dernière mise à jour** : Janvier 2025  
+**Dernière mise à jour** : 9 août 2025  
 **Site web** : [arkoa.app](https://arkoa.app)

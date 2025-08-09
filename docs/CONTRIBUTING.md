@@ -65,12 +65,12 @@ git remote add upstream https://github.com/ORGANISATION/arkoa.git
 pnpm install
 
 # 5. Configurer l'environnement
-cp .env.example .env
-# Éditer .env avec vos paramètres
+# Créer un fichier .env avec vos paramètres
+# DATABASE_URL="postgresql://user:password@localhost:5432/arkoa"
+# BETTER_AUTH_SECRET="your-secret-key"
 
-# 6. Initialiser la base de données
-npx prisma migrate dev
-npx prisma db seed
+# 6. Générer le client Prisma
+npx prisma generate
 
 # 7. Démarrer l'application
 pnpm dev

@@ -135,8 +135,7 @@ arkoa/
 │   └── types/                     # Types TypeScript
 ├── prisma/                        # Configuration Prisma
 │   ├── schema.prisma              # Schéma de base de données
-│   ├── migrations/                # Migrations
-│   └── seed.ts                    # Données de test
+│   └── migrations/                # Migrations
 ├── docs/                          # Documentation
 ├── docker/                        # Configuration Docker
 └── tests/                         # Tests

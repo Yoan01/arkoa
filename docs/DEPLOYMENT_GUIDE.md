@@ -63,7 +63,7 @@ psql --version
 #### Development (.env.development)
 ```bash
 # Base de données locale
-DATABASE_URL="postgresql://arkoa_user:password@localhost:5432/arkoa_dev"
+DATABASE_URL="postgresql://arkoa_user:password@localhost:5432/arkoa"
 
 # Authentification
 BETTER_AUTH_SECRET="dev-secret-key-32-characters-min"
@@ -76,12 +76,6 @@ NEXT_PUBLIC_APP_URL="http://localhost:3000"
 # Debug
 DEBUG="true"
 LOG_LEVEL="debug"
-
-# Email (optionnel en dev)
-SMTP_HOST="smtp.mailtrap.io"
-SMTP_PORT="2525"
-SMTP_USER="your-mailtrap-user"
-SMTP_PASS="your-mailtrap-pass"
 ```
 
 #### Staging (.env.staging)
@@ -99,22 +93,12 @@ NEXT_PUBLIC_APP_URL="https://staging.arkoa.app"
 
 # Logs
 LOG_LEVEL="info"
-
-# Email
-SMTP_HOST="smtp.sendgrid.net"
-SMTP_PORT="587"
-SMTP_USER="apikey"
-SMTP_PASS="your-sendgrid-api-key"
-SMTP_FROM="noreply@staging.arkoa.app"
-
-# Monitoring
-SENTRY_DSN="https://your-sentry-dsn@sentry.io/project-id"
 ```
 
 #### Production (.env.production)
 ```bash
 # Base de données production
-DATABASE_URL="postgresql://arkoa_prod:very_secure_password@prod-db:5432/arkoa_prod"
+DATABASE_URL="postgresql://arkoa_prod:very_secure_password@prod-db:5432/arkoa"
 
 # Authentification
 BETTER_AUTH_SECRET="production-secret-key-extremely-secure-64-chars-minimum"
@@ -124,29 +108,8 @@ BETTER_AUTH_URL="https://arkoa.app"
 NODE_ENV="production"
 NEXT_PUBLIC_APP_URL="https://arkoa.app"
 
-# Sécurité
-SECURE_COOKIES="true"
-CSRF_SECRET="csrf-secret-key-32-chars-min"
-
 # Logs
 LOG_LEVEL="warn"
-
-# Email production
-SMTP_HOST="smtp.sendgrid.net"
-SMTP_PORT="587"
-SMTP_USER="apikey"
-SMTP_PASS="your-production-sendgrid-api-key"
-SMTP_FROM="noreply@arkoa.app"
-
-# Monitoring
-SENTRY_DSN="https://your-production-sentry-dsn@sentry.io/project-id"
-SENTRY_ENVIRONMENT="production"
-
-# Stockage (optionnel)
-AWS_ACCESS_KEY_ID="your-aws-access-key"
-AWS_SECRET_ACCESS_KEY="your-aws-secret-key"
-AWS_REGION="eu-west-1"
-AWS_S3_BUCKET="arkoa-prod-uploads"
 ```
 
 ## Déploiement local
@@ -162,12 +125,12 @@ cd arkoa
 pnpm install
 
 # Configurer l'environnement
-cp .env.example .env
-# Éditer .env avec vos paramètres
+# Créer un fichier .env avec vos paramètres
+# DATABASE_URL="postgresql://user:password@localhost:5432/arkoa"
+# BETTER_AUTH_SECRET="your-secret-key"
 
-# Initialiser la base de données
-npx prisma migrate dev
-npx prisma db seed
+# Générer le client Prisma
+npx prisma generate
 
 # Démarrer l'application
 pnpm dev
@@ -189,53 +152,23 @@ pnpm start
 
 ## Déploiement avec Docker
 
-### Docker Compose - Développement
+### Docker Compose - Staging
 
 ```yaml
-# docker-compose.dev.yml
+# docker-compose.staging.yml
 version: "3.9"
 
 services:
   web:
-    build:
-      context: .
-      target: development
+    build: .
     ports:
-      - "3000:3000"
+      - 4001:3000
     environment:
-      - NODE_ENV=development
-      - DATABASE_URL=postgresql://arkoa_user:password@db:5432/arkoa_dev
-      - BETTER_AUTH_SECRET=dev-secret-key-32-characters-min
-      - BETTER_AUTH_URL=http://localhost:3000
-    volumes:
-      - .:/app
-      - /app/node_modules
-      - /app/.next
-    depends_on:
-      - db
-    command: pnpm dev
-
-  db:
-    image: postgres:14
-    environment:
-      - POSTGRES_DB=arkoa_dev
-      - POSTGRES_USER=arkoa_user
-      - POSTGRES_PASSWORD=password
-    volumes:
-      - postgres_dev_data:/var/lib/postgresql/data
-      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init.sql
-    ports:
-      - "5432:5432"
-
-  adminer:
-    image: adminer
-    ports:
-      - "8080:8080"
-    depends_on:
-      - db
-
-volumes:
-  postgres_dev_data:
+      - BETTER_AUTH_SECRET
+      - BETTER_AUTH_URL
+      - DATABASE_URL
+      - NODE_ENV
+    command: pnpm start
 ```
 
 ### Docker Compose - Production
@@ -246,46 +179,15 @@ version: "3.9"
 
 services:
   web:
-    build:
-      context: .
-      target: production
+    build: .
     ports:
-      - "3000:3000"
+      - 4000:3000
     environment:
-      - NODE_ENV=production
-      - DATABASE_URL=${DATABASE_URL}
-      - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET}
-      - BETTER_AUTH_URL=${BETTER_AUTH_URL}
-      - SENTRY_DSN=${SENTRY_DSN}
-    volumes:
-      - ./uploads:/app/uploads
-    depends_on:
-      - db
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-
-  db:
-    image: postgres:14
-    environment:
-      - POSTGRES_DB=${POSTGRES_DB}
-      - POSTGRES_USER=${POSTGRES_USER}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-    volumes:
-      - postgres_prod_data:/var/lib/postgresql/data
-      - ./backups:/backups
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  nginx:
-    image: nginx:alpine
+      - BETTER_AUTH_SECRET
+      - BETTER_AUTH_URL
+      - DATABASE_URL
+      - NODE_ENV
+    command: pnpm start
     ports:
       - "80:80"
       - "443:443"
@@ -300,61 +202,42 @@ volumes:
   postgres_prod_data:
 ```
 
-### Dockerfile optimisé
+### Dockerfile
 
 ```dockerfile
-# Dockerfile
-FROM node:20-alpine AS base
-
-# Install pnpm
-RUN npm install -g pnpm
-
-# Set working directory
+# Étape 1 : build
+FROM node:20-alpine AS builder
 WORKDIR /app
 
-# Copy package files
-COPY package.json pnpm-lock.yaml ./
+# Installer pnpm globalement
+RUN npm install -g pnpm
 
-# Development stage
-FROM base AS development
+COPY package*.json pnpm-lock.yaml ./
 RUN pnpm install
-COPY . .
-EXPOSE 3000
-CMD ["pnpm", "dev"]
 
-# Build stage
-FROM base AS builder
-RUN pnpm install --frozen-lockfile
 COPY . .
+
 RUN npx prisma generate
+
 RUN pnpm build
 
-# Production stage
-FROM node:20-alpine AS production
-
-# Install pnpm
-RUN npm install -g pnpm
-
-# Create app user
-RUN addgroup -g 1001 -S nodejs
-RUN adduser -S nextjs -u 1001
-
-# Set working directory
+# Étape 2 : runtime
+FROM node:20-alpine
 WORKDIR /app
 
-# Copy built application
-COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
-COPY --from=builder --chown=nextjs:nodejs /app/public ./public
-COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
+RUN npm install -g pnpm
 
-# Create uploads directory
-RUN mkdir -p uploads && chown nextjs:nodejs uploads
+COPY package*.json pnpm-lock.yaml ./
+RUN pnpm install --prod
 
-# Switch to non-root user
-USER nextjs
+COPY --from=builder /app/.next ./.next
+COPY --from=builder /app/public ./public
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/src/generated/prisma ./src/generated/prisma
 
 EXPOSE 3000
+
+CMD ["pnpm", "start"]
 
 ENV PORT 3000
 ENV HOSTNAME "0.0.0.0"
@@ -365,8 +248,8 @@ CMD ["node", "server.js"]
 ### Commandes de déploiement Docker
 
 ```bash
-# Développement
-docker-compose -f docker-compose.dev.yml up -d
+# Staging
+docker-compose -f docker-compose.staging.yml up -d
 
 # Production
 docker-compose -f docker-compose.production.yml up -d
@@ -382,131 +265,6 @@ docker-compose -f docker-compose.production.yml up -d
 ```
 
 ## Déploiement cloud
-
-### AWS (Amazon Web Services)
-
-#### Architecture recommandée
-
-```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   CloudFront    │────│   Application   │────│   RDS Postgres  │
-│   (CDN + SSL)   │    │   Load Balancer │    │   (Database)    │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-                                │
-                       ┌─────────────────┐
-                       │   ECS Fargate   │
-                       │   (Containers)  │
-                       └─────────────────┘
-```
-
-#### Configuration ECS
-
-```json
-// ecs-task-definition.json
-{
-  "family": "arkoa-app",
-  "networkMode": "awsvpc",
-  "requiresCompatibilities": ["FARGATE"],
-  "cpu": "1024",
-  "memory": "2048",
-  "executionRoleArn": "arn:aws:iam::account:role/ecsTaskExecutionRole",
-  "taskRoleArn": "arn:aws:iam::account:role/ecsTaskRole",
-  "containerDefinitions": [
-    {
-      "name": "arkoa-web",
-      "image": "your-account.dkr.ecr.region.amazonaws.com/arkoa:latest",
-      "portMappings": [
-        {
-          "containerPort": 3000,
-          "protocol": "tcp"
-        }
-      ],
-      "environment": [
-        {
-          "name": "NODE_ENV",
-          "value": "production"
-        }
-      ],
-      "secrets": [
-        {
-          "name": "DATABASE_URL",
-          "valueFrom": "arn:aws:secretsmanager:region:account:secret:arkoa/database-url"
-        },
-        {
-          "name": "BETTER_AUTH_SECRET",
-          "valueFrom": "arn:aws:secretsmanager:region:account:secret:arkoa/auth-secret"
-        }
-      ],
-      "logConfiguration": {
-        "logDriver": "awslogs",
-        "options": {
-          "awslogs-group": "/ecs/arkoa",
-          "awslogs-region": "eu-west-1",
-          "awslogs-stream-prefix": "ecs"
-        }
-      },
-      "healthCheck": {
-        "command": ["CMD-SHELL", "curl -f http://localhost:3000/api/health || exit 1"],
-        "interval": 30,
-        "timeout": 5,
-        "retries": 3
-      }
-    }
-  ]
-}
-```
-
-#### Script de déploiement AWS
-
-```bash
-#!/bin/bash
-# deploy-aws.sh
-
-set -e
-
-# Variables
-REGION="eu-west-1"
-CLUSTER_NAME="arkoa-cluster"
-SERVICE_NAME="arkoa-service"
-IMAGE_TAG="latest"
-REPOSITORY_URI="your-account.dkr.ecr.${REGION}.amazonaws.com/arkoa"
-
-echo "🚀 Déploiement AWS ECS en cours..."
-
-# 1. Build et push de l'image Docker
-echo "📦 Construction de l'image Docker..."
-docker build -t arkoa:${IMAGE_TAG} .
-
-# Login ECR
-aws ecr get-login-password --region ${REGION} | docker login --username AWS --password-stdin ${REPOSITORY_URI}
-
-# Tag et push
-docker tag arkoa:${IMAGE_TAG} ${REPOSITORY_URI}:${IMAGE_TAG}
-docker push ${REPOSITORY_URI}:${IMAGE_TAG}
-
-# 2. Mise à jour de la task definition
-echo "📝 Mise à jour de la task definition..."
-aws ecs register-task-definition \
-  --cli-input-json file://ecs-task-definition.json \
-  --region ${REGION}
-
-# 3. Mise à jour du service
-echo "🔄 Mise à jour du service ECS..."
-aws ecs update-service \
-  --cluster ${CLUSTER_NAME} \
-  --service ${SERVICE_NAME} \
-  --force-new-deployment \
-  --region ${REGION}
-
-# 4. Attendre que le déploiement soit terminé
-echo "⏳ Attente de la fin du déploiement..."
-aws ecs wait services-stable \
-  --cluster ${CLUSTER_NAME} \
-  --services ${SERVICE_NAME} \
-  --region ${REGION}
-
-echo "✅ Déploiement terminé avec succès!"
-```
 
 ### Vercel (Recommandé pour Next.js)
 
@@ -681,8 +439,8 @@ jobs:
       
       - name: Setup test environment
         run: |
-          cp .env.example .env.test
-          echo "DATABASE_URL=postgresql://postgres:postgres@localhost:5432/arkoa_test" >> .env.test
+          echo "DATABASE_URL=postgresql://postgres:postgres@localhost:5432/arkoa_test" > .env.test
+          echo "BETTER_AUTH_SECRET=test-secret-key" >> .env.test
       
       - name: Generate Prisma client
         run: npx prisma generate
@@ -899,34 +657,22 @@ CLUSTER_NAME="arkoa-cluster"
 
 echo "🔄 Rollback vers la version: ${PREVIOUS_VERSION}"
 
-# 1. Récupérer la task definition précédente
-echo "📋 Récupération de la task definition précédente..."
-TASK_DEFINITION=$(aws ecs describe-task-definition \
-  --task-definition ${SERVICE_NAME}:${PREVIOUS_VERSION} \
-  --query 'taskDefinition' \
-  --output json)
+# 1. Arrêter le service actuel
+echo "🛑 Arrêt du service actuel..."
+docker-compose down
 
-# 2. Supprimer les champs non nécessaires
-echo "🧹 Nettoyage de la task definition..."
-CLEANED_TASK_DEF=$(echo $TASK_DEFINITION | jq 'del(.taskDefinitionArn, .revision, .status, .requiresAttributes, .placementConstraints, .compatibilities, .registeredAt, .registeredBy)')
+# 2. Récupérer la version précédente
+echo "📋 Récupération de la version précédente..."
+docker pull your-registry.com/arkoa:${PREVIOUS_VERSION}
 
-# 3. Enregistrer la nouvelle task definition
-echo "📝 Enregistrement de la task definition..."
-aws ecs register-task-definition \
-  --cli-input-json "$CLEANED_TASK_DEF"
+# 3. Redémarrer avec la version précédente
+echo "🔄 Redémarrage avec la version précédente..."
+IMAGE_TAG=${PREVIOUS_VERSION} docker-compose up -d
 
-# 4. Mettre à jour le service
-echo "🔄 Mise à jour du service..."
-aws ecs update-service \
-  --cluster ${CLUSTER_NAME} \
-  --service ${SERVICE_NAME} \
-  --force-new-deployment
-
-# 5. Attendre la stabilisation
-echo "⏳ Attente de la stabilisation..."
-aws ecs wait services-stable \
-  --cluster ${CLUSTER_NAME} \
-  --services ${SERVICE_NAME}
+# 4. Vérifier le statut
+echo "⏳ Vérification du statut..."
+sleep 30
+curl -f http://localhost:3000/api/health || echo "❌ Service non disponible"
 
 echo "✅ Rollback terminé avec succès!"
 ```
@@ -941,7 +687,7 @@ set -e
 
 # Variables
 DB_HOST=${DB_HOST:-"localhost"}
-DB_NAME=${DB_NAME:-"arkoa_prod"}
+DB_NAME=${DB_NAME:-"arkoa"}
 DB_USER=${DB_USER:-"arkoa_user"}
 BACKUP_DIR="/backups"
 DATE=$(date +"%Y%m%d_%H%M%S")
@@ -967,12 +713,7 @@ find ${BACKUP_DIR} -name "arkoa_backup_*.sql.gz" -mtime +${RETENTION_DAYS} -dele
 
 echo "✅ Nettoyage terminé"
 
-# Optionnel: Upload vers S3
-if [ ! -z "$AWS_S3_BUCKET" ]; then
-  echo "☁️ Upload vers S3..."
-  aws s3 cp ${BACKUP_FILE}.gz s3://${AWS_S3_BUCKET}/backups/
-  echo "✅ Upload S3 terminé"
-fi
+echo "💾 Sauvegarde locale terminée"
 ```
 
 ### Plan de récupération d'urgence

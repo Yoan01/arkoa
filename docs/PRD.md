@@ -271,10 +271,9 @@ Arkoa se positionne comme une alternative moderne aux solutions legacy, ciblant 
 - **Tests** : Jest + Testing Library + Playwright
 
 ### Infrastructure
-- **Hébergement** : Cloud provider (AWS/GCP/Azure)
-- **Base de données** : PostgreSQL managée
-- **CDN** : CloudFront ou équivalent
-- **Monitoring** : Application et infrastructure
+- **Hébergement** : Docker + Docker Compose
+- **Base de données** : PostgreSQL
+- **Monitoring** : Logs et health checks
 - **Backup** : Sauvegarde quotidienne automatique
 
 ### APIs et intégrations
@@ -343,10 +342,9 @@ Arkoa se positionne comme une alternative moderne aux solutions legacy, ciblant 
 ## Intégrations
 
 ### Intégrations prioritaires
-1. **Email** : SMTP pour notifications
-2. **Calendrier** : Export iCal/Google Calendar
-3. **SIRH** : Import/export données employés
-4. **SSO** : Active Directory, Google Workspace
+1. **Calendrier** : Export iCal/Google Calendar
+2. **SIRH** : Import/export données employés
+3. **SSO** : Active Directory, Google Workspace
 
 ### Intégrations futures
 1. **Slack/Teams** : Notifications et commandes

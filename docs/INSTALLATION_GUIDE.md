@@ -55,9 +55,9 @@ pnpm install
 2. Créer une base de données :
 
 ```sql
-CREATE DATABASE arkoa_dev;
+CREATE DATABASE arkoa;
 CREATE USER arkoa_user WITH PASSWORD 'arkoa_password';
-GRANT ALL PRIVILEGES ON DATABASE arkoa_dev TO arkoa_user;
+GRANT ALL PRIVILEGES ON DATABASE arkoa TO arkoa_user;
 ```
 
 #### Option B : PostgreSQL avec Docker
@@ -65,7 +65,7 @@ GRANT ALL PRIVILEGES ON DATABASE arkoa_dev TO arkoa_user;
 ```bash
 # Démarrer PostgreSQL avec Docker
 docker run --name arkoa-postgres \
-  -e POSTGRES_DB=arkoa_dev \
+  -e POSTGRES_DB=arkoa \
   -e POSTGRES_USER=arkoa_user \
   -e POSTGRES_PASSWORD=arkoa_password \
   -p 5432:5432 \
@@ -84,7 +84,7 @@ Contenu du fichier `.env.local` :
 
 ```bash
 # Base de données
-DATABASE_URL="postgresql://arkoa_user:arkoa_password@localhost:5432/arkoa_dev"
+DATABASE_URL="postgresql://arkoa_user:arkoa_password@localhost:5432/arkoa"
 
 # Better Auth
 BETTER_AUTH_SECRET="your-secret-key-here"
@@ -157,7 +157,7 @@ Créer un fichier `.env.production` :
 
 ```bash
 # Base de données production
-DATABASE_URL="postgresql://user:password@prod-db-host:5432/arkoa_prod"
+DATABASE_URL="postgresql://user:password@prod-db-host:5432/arkoa"
 
 # Authentification
 BETTER_AUTH_SECRET="clé-secrète-production-très-sécurisée"
@@ -197,7 +197,7 @@ docker build -t arkoa .
 ```bash
 # Démarrer PostgreSQL
 docker run --name arkoa-postgres \
-  -e POSTGRES_DB=arkoa_prod \
+  -e POSTGRES_DB=arkoa \
   -e POSTGRES_USER=arkoa_user \
   -e POSTGRES_PASSWORD=arkoa_password \
   -p 5432:5432 \
@@ -206,7 +206,7 @@ docker run --name arkoa-postgres \
 # Démarrer l'application
 docker run --name arkoa-app \
   -p 3000:3000 \
-  -e DATABASE_URL="postgresql://arkoa_user:arkoa_password@host.docker.internal:5432/arkoa_prod" \
+  -e DATABASE_URL="postgresql://arkoa_user:arkoa_password@host.docker.internal:5432/arkoa" \
   -e BETTER_AUTH_SECRET="your-secret-key" \
   -e NEXT_PUBLIC_APP_URL="http://localhost:3000" \
   -e NODE_ENV="production" \
@@ -267,7 +267,7 @@ export const auth = betterAuth({
 
 ```bash
 # Vérifier que PostgreSQL fonctionne
-psql -h localhost -U arkoa_user -d arkoa_dev
+psql -h localhost -U arkoa_user -d arkoa
 
 # Sur macOS avec Homebrew
 brew services list | grep postgresql
@@ -339,10 +339,10 @@ PORT=3001 pnpm dev
 
 ```bash
 # Sauvegarde de la base de données
-pg_dump -h localhost -U arkoa_user arkoa_dev > backup_$(date +%Y%m%d).sql
+pg_dump -h localhost -U arkoa_user arkoa > backup_$(date +%Y%m%d).sql
 
 # Restauration
-psql -h localhost -U arkoa_user arkoa_dev < backup_20240101.sql
+psql -h localhost -U arkoa_user arkoa < backup_20240101.sql
 ```
 
 ### Mises à jour
