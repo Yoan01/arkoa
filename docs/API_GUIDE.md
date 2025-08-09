@@ -488,5 +488,5 @@ curl -X POST https://arkoa.app/api/companies/company-id/memberships/membership-i
 ---
 
 **Version** : 1.0.0  
-**Dernière mise à jour** : Janvier 2025  
-**Support** : [support@arkoa.app](mailto:support@arkoa.app)
+**Dernière mise à jour** : Août 2025  
+**Support** : GitHub Issues

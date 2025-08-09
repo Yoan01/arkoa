@@ -511,15 +511,15 @@ Arkoa se positionne comme une alternative moderne aux solutions legacy, ciblant 
 - Guidelines d'accessibilité WCAG 2.1
 
 ### C. Contacts
-- **Product Owner** : [nom@arkoa.app]
-- **Tech Lead** : [nom@arkoa.app]
-- **Design Lead** : [nom@arkoa.app]
-- **Security Officer** : [nom@arkoa.app]
+- **Product Owner** : [À définir]
+- **Tech Lead** : [À définir]
+- **Design Lead** : [À définir]
+- **Security Officer** : [À définir]
 
 ---
 
 *Ce document est un document vivant qui sera mis à jour régulièrement en fonction de l'évolution du produit et des retours utilisateurs.*
 
-**Dernière mise à jour** : January 2025
+**Dernière mise à jour** : Août 2025
 **Version** : 1.0
 **Statut** : Draft

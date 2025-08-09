@@ -345,8 +345,8 @@ Consultez le [Guide de contribution](./CONTRIBUTING.md) pour plus de détails.
 
 ### Support
 
-- **Email** : [support@arkoa.app](mailto:support@arkoa.app)
-- **Documentation** : [docs.arkoa.app](https://docs.arkoa.app)
+- **GitHub Issues** : [Créer une issue](https://github.com/ORGANISATION/arkoa/issues)
+- **Documentation** : Voir le dossier `/docs`
 - **Issues** : [GitHub Issues](https://github.com/arkoa/arkoa/issues)
 
 ### Communauté
@@ -387,4 +387,4 @@ Ce projet est sous licence MIT. Voir le fichier [LICENSE](../LICENSE) pour plus 
 **Arkoa** - Simplifiez la gestion des congés de votre entreprise  
 **Version** : 1.0.0  
 **Dernière mise à jour** : 9 août 2025  
-**Site web** : [arkoa.app](https://arkoa.app)
+**Site web** : À déployer

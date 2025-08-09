@@ -760,5 +760,5 @@ CMD ["node", "server.js"]
 ---
 
 **Version** : 1.0.0  
-**Dernière mise à jour** : Janvier 2025  
+**Dernière mise à jour** : Août 2025  
 **Compatibilité** : Next.js 15+, Node.js 18+

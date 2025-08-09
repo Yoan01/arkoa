@@ -364,4 +364,4 @@ pnpm start
 **Support** : Pour toute question, consulter la documentation technique ou créer une issue sur GitHub.
 
 **Version** : 1.0.0  
-**Dernière mise à jour** : Janvier 2025
+**Dernière mise à jour** : Août 2025

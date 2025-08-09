@@ -934,7 +934,7 @@ CMD ["node", "server.js"]
 # Labels de sécurité
 LABEL security.scan="enabled" \
       security.updates="auto" \
-      maintainer="security@arkoa.app"
+      maintainer="GitHub Issues"
 ```
 
 ### Configuration Nginx sécurisée
@@ -1264,5 +1264,5 @@ testssl.sh https://arkoa.app
 **Ce guide de sécurité doit être régulièrement mis à jour pour refléter les nouvelles menaces et les meilleures pratiques.**
 
 **Version** : 1.0.0  
-**Dernière mise à jour** : Janvier 2025  
+**Dernière mise à jour** : Août 2025  
 **Prochaine révision** : Juillet 2025

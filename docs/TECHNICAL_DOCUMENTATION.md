@@ -212,7 +212,7 @@ POST   /api/companies/[id]/memberships    # Inviter un membre
 
 Toutes les routes API nécessitent une authentification via Better Auth :
 
-```javascript
+```typescript
 // Headers requis
 Authorization: Bearer <token>
 Content-Type: application/json
@@ -441,5 +441,5 @@ pnpm test:all
 ---
 
 **Version de la documentation** : 1.0.0  
-**Dernière mise à jour** : Janvier 2025  
+**Dernière mise à jour** : Août 2025  
 **Auteur** : Équipe Arkoa

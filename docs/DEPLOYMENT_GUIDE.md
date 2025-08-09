@@ -752,4 +752,4 @@ echo "💾 Sauvegarde locale terminée"
 **Ce guide de déploiement couvre les aspects essentiels pour mettre en production l'application Arkoa de manière sécurisée et fiable.**
 
 **Version**: 1.0.0  
-**Dernière mise à jour**: Janvier 2025
+**Dernière mise à jour**: Août 2025

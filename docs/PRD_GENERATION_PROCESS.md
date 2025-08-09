@@ -235,6 +235,6 @@ graph TD
 
 *Ce processus est conçu pour évoluer avec l'équipe et le produit. Il doit être régulièrement évalué et amélioré.*
 
-**Dernière mise à jour** : January 2025
+**Dernière mise à jour** : Août 2025
 **Version** : 1.0
 **Propriétaire** : Product Team
