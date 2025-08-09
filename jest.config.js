@@ -43,7 +43,9 @@ const customJestConfig = {
     '<rootDir>/node_modules/',
     '<rootDir>/e2e/',
   ],
-  transformIgnorePatterns: ['node_modules/(?!(msw|@mswjs)/)'],
+  transformIgnorePatterns: [
+    'node_modules/(?!(msw|@mswjs|nanostores|better-auth)/)',
+  ],
 }
 
 // createJestConfig is exported this way to ensure that next/jest can load the Next.js config which is async
