@@ -2,7 +2,7 @@
 
 ## Vue d'ensemble
 
-Ce guide détaille les différentes stratégies de déploiement pour l'application Arkoa, de l'environnement de développement à la production.
+Ce guide détaille les stratégies de déploiement pour l'application Arkoa, de l'environnement de développement à la production en utilisant Docker et Dokploy.
 
 ## Table des matières
 
@@ -10,8 +10,7 @@ Ce guide détaille les différentes stratégies de déploiement pour l'applicati
 - [Environnements](#environnements)
 - [Déploiement local](#déploiement-local)
 - [Déploiement avec Docker](#déploiement-avec-docker)
-- [Déploiement cloud](#déploiement-cloud)
-- [CI/CD](#cicd)
+- [CI/CD avec GitHub Actions et Dokploy](#cicd-avec-github-actions-et-dokploy)
 - [Monitoring et maintenance](#monitoring-et-maintenance)
 - [Rollback et récupération](#rollback-et-récupération)
 
@@ -143,7 +142,13 @@ pnpm dev
 curl http://localhost:3000/api/health
 
 # Exécuter les tests
-pnpm test
+pnpm test:ci
+
+# Exécuter les tests d'intégration
+pnpm test:integration:ci
+
+# Exécuter les tests E2E
+pnpm test:e2e
 
 # Vérifier le build de production
 pnpm build
@@ -188,18 +193,6 @@ services:
       - DATABASE_URL
       - NODE_ENV
     command: pnpm start
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
-      - ./nginx/ssl:/etc/nginx/ssl
-    depends_on:
-      - web
-    restart: unless-stopped
-
-volumes:
-  postgres_prod_data:
 ```
 
 ### Dockerfile
@@ -238,11 +231,6 @@ COPY --from=builder /app/src/generated/prisma ./src/generated/prisma
 EXPOSE 3000
 
 CMD ["pnpm", "start"]
-
-ENV PORT 3000
-ENV HOSTNAME "0.0.0.0"
-
-CMD ["node", "server.js"]
 ```
 
 ### Commandes de déploiement Docker
@@ -254,125 +242,21 @@ docker-compose -f docker-compose.staging.yml up -d
 # Production
 docker-compose -f docker-compose.production.yml up -d
 
-# Build et push vers un registry
+# Build local
 docker build -t arkoa:latest .
-docker tag arkoa:latest your-registry.com/arkoa:latest
-docker push your-registry.com/arkoa:latest
 
-# Déploiement avec une image du registry
-docker pull your-registry.com/arkoa:latest
-docker-compose -f docker-compose.production.yml up -d
+# Arrêter les services
+docker-compose down
+
+# Voir les logs
+docker-compose logs -f web
 ```
 
-## Déploiement cloud
+## CI/CD avec GitHub Actions et Dokploy
 
-### Vercel (Recommandé pour Next.js)
+### Configuration GitHub Actions
 
-#### Configuration Vercel
-
-```json
-// vercel.json
-{
-  "version": 2,
-  "builds": [
-    {
-      "src": "package.json",
-      "use": "@vercel/next"
-    }
-  ],
-  "env": {
-    "DATABASE_URL": "@database-url",
-    "BETTER_AUTH_SECRET": "@auth-secret",
-    "BETTER_AUTH_URL": "https://arkoa.app"
-  },
-  "functions": {
-    "app/api/**/*.ts": {
-      "maxDuration": 30
-    }
-  },
-  "headers": [
-    {
-      "source": "/(.*)",
-      "headers": [
-        {
-          "key": "X-Content-Type-Options",
-          "value": "nosniff"
-        },
-        {
-          "key": "X-Frame-Options",
-          "value": "DENY"
-        },
-        {
-          "key": "X-XSS-Protection",
-          "value": "1; mode=block"
-        }
-      ]
-    }
-  ]
-}
-```
-
-#### Déploiement Vercel
-
-```bash
-# Installation de Vercel CLI
-npm install -g vercel
-
-# Login
-vercel login
-
-# Configuration du projet
-vercel
-
-# Déploiement
-vercel --prod
-
-# Ou via GitHub (recommandé)
-# 1. Connecter le repository GitHub à Vercel
-# 2. Configurer les variables d'environnement
-# 3. Chaque push sur main déclenche un déploiement automatique
-```
-
-### DigitalOcean App Platform
-
-```yaml
-# .do/app.yaml
-name: arkoa
-services:
-- name: web
-  source_dir: /
-  github:
-    repo: your-username/arkoa
-    branch: main
-    deploy_on_push: true
-  run_command: pnpm start
-  environment_slug: node-js
-  instance_count: 2
-  instance_size_slug: basic-xxs
-  envs:
-  - key: NODE_ENV
-    value: production
-  - key: DATABASE_URL
-    value: ${db.DATABASE_URL}
-  - key: BETTER_AUTH_SECRET
-    value: ${BETTER_AUTH_SECRET}
-  - key: BETTER_AUTH_URL
-    value: ${APP_URL}
-  health_check:
-    http_path: /api/health
-  http_port: 3000
-  routes:
-  - path: /
-databases:
-- name: db
-  engine: PG
-  version: "14"
-  size: basic-xs
-```
-
-## CI/CD
-
-### GitHub Actions
+Le projet utilise GitHub Actions pour l'intégration continue et le déploiement automatique via Dokploy.
 
 ```yaml
 # .github/workflows/ci-cd.yml
@@ -380,296 +264,189 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches: [main, develop]
-  pull_request:
-    branches: [main]
+    branches: [prod, staging]
 
 env:
   NODE_VERSION: '20'
   PNPM_VERSION: '8'
 
 jobs:
-  test:
-    name: Tests
+  test-and-deploy:
+    name: Test and Deploy
     runs-on: ubuntu-latest
-    
-    services:
-      postgres:
-        image: postgres:14
-        env:
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: arkoa_test
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 5432:5432
     
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      
+        
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-      
+          
       - name: Setup pnpm
         uses: pnpm/action-setup@v2
         with:
           version: ${{ env.PNPM_VERSION }}
-      
-      - name: Get pnpm store directory
-        shell: bash
-        run: |
-          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
-      
-      - name: Setup pnpm cache
-        uses: actions/cache@v3
-        with:
-          path: ${{ env.STORE_PATH }}
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-store-
-      
+          
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-      
-      - name: Setup test environment
-        run: |
-          echo "DATABASE_URL=postgresql://postgres:postgres@localhost:5432/arkoa_test" > .env.test
-          echo "BETTER_AUTH_SECRET=test-secret-key" >> .env.test
-      
-      - name: Generate Prisma client
-        run: npx prisma generate
-      
-      - name: Run database migrations
-        run: npx prisma migrate deploy
-        env:
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/arkoa_test
-      
-      - name: Run linting
-        run: pnpm lint
-      
-      - name: Run type checking
+        run: pnpm install --no-frozen-lockfile
+        
+      - name: TypeScript check
         run: pnpm ts:fix
-      
-      - name: Run unit tests
-        run: pnpm test:unit --coverage
-      
-      - name: Run integration tests
-        run: pnpm test:integration
-        env:
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/arkoa_test
-      
-      - name: Upload coverage reports
-        uses: codecov/codecov-action@v3
-        with:
-          file: ./coverage/lcov.info
-          flags: unittests
-          name: codecov-umbrella
-
-  e2e:
-    name: E2E Tests
-    runs-on: ubuntu-latest
-    needs: test
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-      
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-      
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v2
-        with:
-          version: ${{ env.PNPM_VERSION }}
-      
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-      
-      - name: Install Playwright browsers
-        run: npx playwright install --with-deps
-      
+        
+      - name: Lint check
+        run: pnpm lint
+        
+      - name: Run tests
+        run: pnpm test:ci
+        
       - name: Build application
         run: pnpm build
-      
-      - name: Run E2E tests
-        run: pnpm test:e2e
-      
-      - name: Upload E2E test results
-        uses: actions/upload-artifact@v3
-        if: failure()
-        with:
-          name: playwright-report
-          path: playwright-report/
-          retention-days: 30
-
-  build:
-    name: Build Docker Image
-    runs-on: ubuntu-latest
-    needs: [test, e2e]
-    if: github.ref == 'refs/heads/main'
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-      
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-      
-      - name: Login to Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-      
-      - name: Extract metadata
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ghcr.io/${{ github.repository }}
-          tags: |
-            type=ref,event=branch
-            type=ref,event=pr
-            type=sha,prefix={{branch}}-
-            type=raw,value=latest,enable={{is_default_branch}}
-      
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
-  deploy-staging:
-    name: Deploy to Staging
-    runs-on: ubuntu-latest
-    needs: build
-    if: github.ref == 'refs/heads/develop'
-    environment: staging
-    
-    steps:
-      - name: Deploy to staging
+        
+      - name: Deploy to Staging
+        if: github.ref == 'refs/heads/staging'
         run: |
-          echo "🚀 Deploying to staging environment"
-          # Ajouter ici les commandes de déploiement spécifiques
-
-  deploy-production:
-    name: Deploy to Production
-    runs-on: ubuntu-latest
-    needs: build
-    if: github.ref == 'refs/heads/main'
-    environment: production
-    
-    steps:
-      - name: Deploy to production
+          curl -X POST \
+            "${{ secrets.DOKPLOY_URL }}/api/compose.deploy" \
+            -H 'accept: application/json' \
+            -H 'Content-Type: application/json' \
+            -H "x-api-key: ${{ secrets.DOKPLOY_API_KEY }}" \
+            -d '{
+              "composeId": "${{ secrets.STAGING_APP_ID }}"
+            }'
+          
+      - name: Deploy to Production
+        if: github.ref == 'refs/heads/production'
         run: |
-          echo "🚀 Deploying to production environment"
-          # Ajouter ici les commandes de déploiement spécifiques
+          curl -X POST \
+            "${{ secrets.DOKPLOY_URL }}/api/compose.deploy" \
+            -H 'accept: application/json' \
+            -H 'Content-Type: application/json' \
+            -H "x-api-key: ${{ secrets.DOKPLOY_API_KEY }}" \
+            -d '{
+              "composeId": "${{ secrets.PRODUCTION_APP_ID }}"
+            }'
+```
+
+### Configuration Dokploy
+
+Le déploiement se fait via Dokploy avec les secrets GitHub suivants :
+
+- `DOKPLOY_URL` : URL de l'instance Dokploy
+- `DOKPLOY_API_KEY` : Clé API pour l'authentification
+- `STAGING_APP_ID` : ID de l'application staging dans Dokploy
+- `PRODUCTION_APP_ID` : ID de l'application production dans Dokploy
+
+### Branches de déploiement
+
+- **staging** : Déploie automatiquement vers l'environnement de staging
+- **prod** : Déploie automatiquement vers l'environnement de production
+
+### Scripts de test disponibles
+
+```bash
+# Tests unitaires avec couverture
+pnpm test:ci
+
+# Tests d'intégration avec couverture
+pnpm test:integration:ci
+
+# Tests E2E avec Playwright
+pnpm test:e2e
+
+# Tous les tests
+pnpm test:all
 ```
 
 ## Monitoring et maintenance
 
 ### Health Checks
 
-> **Note** : Le système de health checks avancé est prévu pour Q1 2025. Actuellement, un endpoint de base est disponible.
+L'application dispose d'un endpoint de health check basique :
 
-**Fonctionnalités actuellement disponibles :**
+```bash
+# Vérifier le statut de l'application
+curl http://localhost:3000/api/health
+```
+
+**Fonctionnalités disponibles :**
 - Endpoint `/api/health` basique
 - Vérification de la connexion base de données
-- Métriques mémoire de base
 - Status de l'application
-
-**Fonctionnalités prévues (Q1 2025) :**
-- Health checks avancés avec métriques détaillées
-- Vérification de l'espace disque
-- Monitoring des services externes
-- Alertes automatiques en cas de problème
-- Dashboard de monitoring en temps réel
 
 ### Logging
 
-**Note** : Le système de logging avancé avec Winston est prévu pour une version future.
-
-Actuellement disponible :
+**Système de logging actuel :**
 - Logs Next.js intégrés (console.log, console.error)
-- Logs Docker (docker logs)
+- Logs Docker accessibles via `docker logs`
 - Variables d'environnement LOG_LEVEL pour le contrôle
 
-Prévu pour Q1 2025 :
-- Intégration Winston pour logging structuré
-- Rotation automatique des logs
-- Centralisation des logs
+```bash
+# Voir les logs en temps réel
+docker-compose logs -f web
 
-### Métriques avec Prometheus
+# Voir les logs avec timestamps
+docker-compose logs -t web
+```
 
-**Note** : L'intégration Prometheus est prévue pour Q1 2025.
+### Métriques
 
-Actuellement disponible :
+**Métriques disponibles :**
 - Health checks via `/api/health`
 - Métriques Prisma (via le client généré)
 - Métriques système Docker
+- Logs d'application Next.js
 
-Prévu pour Q1 2025 :
-- Métriques Prometheus personnalisées
-- Endpoint `/metrics` pour Prometheus
-- Dashboard Grafana
-- Alerting avec Alertmanager
+### Variables d'environnement de monitoring
 
-### Alerting
+```bash
+# Contrôle du niveau de logs
+LOG_LEVEL="info"  # debug, info, warn, error
 
-**Note** : Le système d'alerting automatique avec Alertmanager est prévu pour Q1 2025.
-
-Actuellement disponible :
-- Notifications par email via Better Auth
-- Logs d'erreurs dans la console
-- Health checks manuels
-
-Prévu pour Q1 2025 :
-- Alerting automatique avec Alertmanager
-- Notifications Slack/Teams
-- Escalade automatique des incidents
+# Mode debug pour le développement
+DEBUG="true"
+```
 
 ## Rollback et récupération
 
 ### Stratégie de rollback
 
+#### Rollback via Dokploy
+
+Le rollback se fait directement via l'interface Dokploy ou en redéployant une version précédente :
+
+```bash
+# Rollback via API Dokploy (remplacer les variables)
+curl -X POST \
+  "${DOKPLOY_URL}/api/compose.deploy" \
+  -H 'accept: application/json' \
+  -H 'Content-Type: application/json' \
+  -H "x-api-key: ${DOKPLOY_API_KEY}" \
+  -d '{
+    "composeId": "${APP_ID}"
+  }'
+```
+
+#### Rollback local
+
 ```bash
 #!/bin/bash
-# rollback.sh
+# rollback-local.sh
 
 set -e
 
-# Variables
-PREVIOUS_VERSION=${1:-"previous"}
-SERVICE_NAME="arkoa-service"
-CLUSTER_NAME="arkoa-cluster"
-
-echo "🔄 Rollback vers la version: ${PREVIOUS_VERSION}"
+echo "🔄 Rollback local"
 
 # 1. Arrêter le service actuel
 echo "🛑 Arrêt du service actuel..."
 docker-compose down
 
-# 2. Récupérer la version précédente
-echo "📋 Récupération de la version précédente..."
-docker pull your-registry.com/arkoa:${PREVIOUS_VERSION}
+# 2. Redémarrer avec rebuild
+echo "🔄 Redémarrage..."
+docker-compose up -d --build
 
-# 3. Redémarrer avec la version précédente
-echo "🔄 Redémarrage avec la version précédente..."
-IMAGE_TAG=${PREVIOUS_VERSION} docker-compose up -d
-
-# 4. Vérifier le statut
+# 3. Vérifier le statut
 echo "⏳ Vérification du statut..."
 sleep 30
 curl -f http://localhost:3000/api/health || echo "❌ Service non disponible"
@@ -677,79 +454,77 @@ curl -f http://localhost:3000/api/health || echo "❌ Service non disponible"
 echo "✅ Rollback terminé avec succès!"
 ```
 
-### Sauvegarde automatique
+### Sauvegarde automatique avec Dokploy et Backblaze
 
+**Configuration actuelle :**
+Les sauvegardes de la base de données sont automatiquement gérées par Dokploy et stockées sur Backblaze avec une fréquence hebdomadaire.
+
+**Fonctionnalités :**
+- **Fréquence** : Sauvegarde automatique chaque semaine
+- **Stockage** : Backblaze B2 Cloud Storage
+- **Gestion** : Intégrée dans Dokploy
+- **Rétention** : Configurée selon les besoins de l'entreprise
+- **Chiffrement** : Sauvegardes chiffrées en transit et au repos
+
+**Avantages :**
+- Aucune intervention manuelle requise
+- Stockage cloud sécurisé et redondant
+- Intégration native avec l'infrastructure de déploiement
+- Monitoring et alertes automatiques en cas d'échec
+
+**Restauration :**
+En cas de besoin, la restauration se fait via l'interface Dokploy ou en contactant l'équipe d'administration système.
+
+**Sauvegarde manuelle d'urgence :**
 ```bash
 #!/bin/bash
-# backup.sh
+# backup-manual.sh - Sauvegarde manuelle d'urgence
 
 set -e
 
-# Variables
 DB_HOST=${DB_HOST:-"localhost"}
 DB_NAME=${DB_NAME:-"arkoa"}
 DB_USER=${DB_USER:-"arkoa_user"}
-BACKUP_DIR="/backups"
 DATE=$(date +"%Y%m%d_%H%M%S")
-BACKUP_FILE="${BACKUP_DIR}/arkoa_backup_${DATE}.sql"
-RETENTION_DAYS=7
+BACKUP_FILE="arkoa_emergency_backup_${DATE}.sql"
 
-echo "💾 Début de la sauvegarde de la base de données..."
-
-# Créer le répertoire de sauvegarde
-mkdir -p ${BACKUP_DIR}
-
-# Effectuer la sauvegarde
+echo "💾 Sauvegarde manuelle d'urgence..."
 pg_dump -h ${DB_HOST} -U ${DB_USER} -d ${DB_NAME} > ${BACKUP_FILE}
-
-# Compresser la sauvegarde
 gzip ${BACKUP_FILE}
-
-echo "✅ Sauvegarde terminée: ${BACKUP_FILE}.gz"
-
-# Nettoyer les anciennes sauvegardes
-echo "🧹 Nettoyage des anciennes sauvegardes..."
-find ${BACKUP_DIR} -name "arkoa_backup_*.sql.gz" -mtime +${RETENTION_DAYS} -delete
-
-echo "✅ Nettoyage terminé"
-
-echo "💾 Sauvegarde locale terminée"
+echo "✅ Sauvegarde d'urgence terminée: ${BACKUP_FILE}.gz"
 ```
 
 ### Plan de récupération d'urgence
 
-```markdown
-# Plan de récupération d'urgence (DRP)
+#### Procédures d'urgence
 
-## Procédures d'urgence
-
-### 1. Application inaccessible
+**1. Application inaccessible**
 1. Vérifier le health check: `curl https://arkoa.app/api/health`
-2. Vérifier les logs: `docker logs arkoa-web`
+2. Vérifier les logs: `docker-compose logs web`
 3. Redémarrer le service: `docker-compose restart web`
-4. Si échec: rollback vers la version précédente
+4. Si échec: rollback via Dokploy ou redéploiement
 
-### 2. Base de données corrompue
+**2. Base de données corrompue**
 1. Arrêter l'application
 2. Restaurer depuis la dernière sauvegarde
-3. Appliquer les migrations manquantes
+3. Appliquer les migrations manquantes avec `npx prisma migrate deploy`
 4. Redémarrer l'application
 
-### 3. Perte de données
+**3. Problème de déploiement**
+1. Vérifier les logs GitHub Actions
+2. Vérifier la connectivité avec Dokploy
+3. Redéployer manuellement si nécessaire
+4. Rollback vers la version précédente
+
+**4. Perte de données**
 1. Identifier l'étendue de la perte
 2. Restaurer depuis la sauvegarde la plus récente
 3. Récupérer les données depuis les logs si possible
 4. Informer les utilisateurs affectés
 
-## Contacts d'urgence
-- Admin système: +33 X XX XX XX XX
-- Développeur principal: +33 X XX XX XX XX
-- Support cloud: support@provider.com
-```
-
 ---
 
-**Ce guide de déploiement couvre les aspects essentiels pour mettre en production l'application Arkoa de manière sécurisée et fiable.**
+**Ce guide de déploiement couvre les aspects essentiels pour mettre en production l'application Arkoa en utilisant Docker et Dokploy pour un déploiement automatisé et fiable.**
 
-**Version**: 1.0.0  
-**Dernière mise à jour**: Août 2025
+**Version**: 2.0.0  
+**Dernière mise à jour**: août 2025

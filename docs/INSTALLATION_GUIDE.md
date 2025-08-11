@@ -4,32 +4,32 @@
 
 ### Logiciels requis
 
-- **Node.js** : Version 20.0 ou supérieure
-- **pnpm** : Gestionnaire de paquets (recommandé)
-- **Git** : Pour cloner le projet
-- **Docker** : Pour l'environnement de développement (optionnel)
-- **PostgreSQL** : Base de données (version 14 ou supérieure)
+- **Node.js** : Version 18.19.1 ou supérieure (LTS recommandée)
+- **pnpm** : Version 8.0+ (gestionnaire de paquets recommandé)
+- **Git** : Pour cloner le repository
+- **Docker** : Version 20.10+ (optionnel, pour le déploiement)
+- **PostgreSQL** : Version 14+ (base de données)
+
+### Versions des technologies principales
+
+- **Next.js** : 15.3.4
+- **React** : 19.0.0
+- **TypeScript** : 5.x
+- **Prisma** : 6.10.1
+- **Better Auth** : 1.2.10
 
 ### Vérification des prérequis
 
 ```bash
-# Vérifier Node.js
-node --version
-# Doit afficher v20.0.0 ou supérieur
-
-# Vérifier pnpm
-pnpm --version
-# Si pnpm n'est pas installé :
-npm install -g pnpm
-
-# Vérifier Git
+# Vérifier les versions installées
+node --version    # Doit être >= 18.19.1
+pnpm --version    # Doit être >= 8.0
 git --version
+docker --version  # Optionnel
+psql --version    # Doit être >= 14
 
-# Vérifier Docker (optionnel)
-docker --version
-
-# Vérifier PostgreSQL
-psql --version
+# Vérifier que pnpm est bien installé
+npm install -g pnpm@latest
 ```
 
 ## Installation pour le développement
@@ -82,12 +82,13 @@ touch .env.local
 
 Contenu du fichier `.env.local` :
 
-```bash
+```env
 # Base de données
 DATABASE_URL="postgresql://arkoa_user:arkoa_password@localhost:5432/arkoa"
 
 # Better Auth
 BETTER_AUTH_SECRET="your-secret-key-here"
+BETTER_AUTH_URL="http://localhost:3000"
 NEXT_PUBLIC_APP_URL="http://localhost:3000"
 
 # Environnement
@@ -116,17 +117,25 @@ pnpm dev
 ### 7. Vérifier l'installation
 
 ```bash
-# Exécuter les tests unitaires
-pnpm test
+# Tests unitaires
+pnpm test              # Tests unitaires
+pnpm test:watch        # Tests unitaires en mode watch
+pnpm test:coverage     # Tests unitaires avec couverture
+pnpm test:ci           # Tests unitaires pour CI
 
-# Exécuter les tests d'intégration
-pnpm test:integration
+# Tests d'intégration
+pnpm test:integration  # Tests d'intégration
+pnpm test:integration:watch    # Tests d'intégration en mode watch
+pnpm test:integration:coverage # Tests d'intégration avec couverture
+pnpm test:integration:ci       # Tests d'intégration pour CI
 
-# Exécuter les tests e2e
-pnpm test:e2e
+# Tests end-to-end
+pnpm test:e2e          # Tests E2E avec Playwright
+pnpm test:e2e:ui       # Tests E2E avec interface Playwright UI
+pnpm test:e2e:headed   # Tests E2E avec interface graphique
 
 # Exécuter tous les tests
-pnpm test:all
+pnpm test:all          # Tests unitaires + intégration + E2E (CI)
 
 # Vérifier le linting
 pnpm lint
@@ -161,6 +170,7 @@ DATABASE_URL="postgresql://user:password@prod-db-host:5432/arkoa"
 
 # Authentification
 BETTER_AUTH_SECRET="clé-secrète-production-très-sécurisée"
+BETTER_AUTH_URL="https://votre-domaine.com"
 NEXT_PUBLIC_APP_URL="https://votre-domaine.com"
 
 # Environnement
@@ -208,6 +218,7 @@ docker run --name arkoa-app \
   -p 3000:3000 \
   -e DATABASE_URL="postgresql://arkoa_user:arkoa_password@host.docker.internal:5432/arkoa" \
   -e BETTER_AUTH_SECRET="your-secret-key" \
+  -e BETTER_AUTH_URL="http://localhost:3000" \
   -e NEXT_PUBLIC_APP_URL="http://localhost:3000" \
   -e NODE_ENV="production" \
   --link arkoa-postgres:postgres \
@@ -221,16 +232,55 @@ docker stop arkoa-app arkoa-postgres
 docker rm arkoa-app arkoa-postgres
 ```
 
+### 3. Déploiement avec Docker Compose
+
+Le projet inclut des fichiers Docker Compose pour les environnements staging et production :
+
+#### Staging
+```bash
+# Utilise le port 4001
+docker-compose -f docker-compose.staging.yml up -d
+
+# Voir les logs
+docker-compose -f docker-compose.staging.yml logs -f
+
+# Arrêter
+docker-compose -f docker-compose.staging.yml down
+```
+
+#### Production
+```bash
+# Utilise le port 4000
+docker-compose -f docker-compose.production.yml up -d
+
+# Voir les logs
+docker-compose -f docker-compose.production.yml logs -f
+
+# Arrêter
+docker-compose -f docker-compose.production.yml down
+```
+
+**Note** : Les fichiers Docker Compose utilisent des variables d'environnement. Assurez-vous de les définir dans votre environnement ou dans un fichier `.env`.
+
 ## Configuration avancée
 
 ### Variables d'environnement requises
 
-```bash
+| Variable | Description | Exemple |
+|----------|-------------|----------|
+| `DATABASE_URL` | URL de connexion PostgreSQL | `postgresql://user:password@localhost:5432/arkoa` |
+| `BETTER_AUTH_SECRET` | Clé secrète pour l'authentification | `your-super-secret-key-here` |
+| `BETTER_AUTH_URL` | URL de base pour Better Auth | `http://localhost:3000` |
+| `NEXT_PUBLIC_APP_URL` | URL publique de l'application | `http://localhost:3000` |
+| `NODE_ENV` | Environnement d'exécution | `development` ou `production` |
+
+```env
 # Base de données
 DATABASE_URL="postgresql://user:password@localhost:5432/arkoa"
 
 # Authentification
 BETTER_AUTH_SECRET="clé-secrète-minimum-32-caractères"
+BETTER_AUTH_URL="http://localhost:3000"
 NEXT_PUBLIC_APP_URL="http://localhost:3000"
 
 # Environnement
@@ -239,23 +289,35 @@ NODE_ENV="development"
 
 ### Configuration Better Auth
 
-Le fichier `src/lib/auth.ts` contient la configuration de base :
+Better Auth est configuré dans `src/lib/auth.ts` :
 
 ```typescript
-import { betterAuth } from "better-auth"
-import { prismaAdapter } from "better-auth/adapters/prisma"
-import { prisma } from "./prisma"
+import { betterAuth } from 'better-auth'
+import { nextCookies } from 'better-auth/next-js'
+import { prismaAdapter } from 'better-auth/adapters/prisma'
+import { PrismaClient } from '../generated/prisma'
+
+const prisma = new PrismaClient()
 
 export const auth = betterAuth({
-  database: prismaAdapter(prisma, {
-    provider: "postgresql"
-  }),
-  emailAndPassword: {
-    enabled: true
-  },
-  trustedOrigins: [process.env.NEXT_PUBLIC_APP_URL!],
+  trustedOrigins: [
+    'http://localhost:3000',
+    'http://127.0.0.1:3000',
+    'http://192.168.1.1:3000',
+    'https://arkoa.app',
+    'https://staging.arkoa.app',
+  ],
   secret: process.env.BETTER_AUTH_SECRET!,
-  baseURL: process.env.NEXT_PUBLIC_APP_URL!
+  baseURL: process.env.BETTER_AUTH_URL!,
+  database: prismaAdapter(prisma),
+  emailAndPassword: {
+    enabled: true,
+  },
+  plugins: [nextCookies()],
+  session: {
+    expiresIn: 60 * 60 * 24 * 7, // 7 jours
+    updateAge: 60 * 60 * 24, // 1 jour
+  },
 })
 ```
 
@@ -317,21 +379,21 @@ PORT=3001 pnpm dev
 ### 2. Créer votre première entreprise
 
 1. Se connecter avec le compte administrateur
-2. Aller dans "Paramètres" > "Entreprise"
+2. Aller dans la section "HR" (Ressources Humaines)
 3. Cliquer sur "Créer une entreprise"
 4. Remplir les informations :
    - Nom de l'entreprise
    - Logo (optionnel)
-   - Nombre de jours de congés annuels
+   - Nombre de jours de congés annuels par défaut
 
 ### 3. Inviter des membres
 
-1. Aller dans "Équipe" > "Membres"
+1. Aller dans la section "Team" (Équipe)
 2. Cliquer sur "Inviter un membre"
 3. Saisir l'email et choisir le rôle :
-   - **ADMIN** : Accès complet
+   - **ADMIN** : Accès complet à la gestion de l'entreprise
    - **MANAGER** : Gestion des congés de son équipe
-   - **EMPLOYEE** : Gestion de ses propres congés
+   - **EMPLOYEE** : Gestion de ses propres congés uniquement
 
 ## Maintenance
 
@@ -363,5 +425,5 @@ pnpm start
 
 **Support** : Pour toute question, consulter la documentation technique ou créer une issue sur GitHub.
 
-**Version** : 1.0.0  
-**Dernière mise à jour** : Août 2025
+**Version** : 0.1.0  
+**Dernière mise à jour** : août 2025

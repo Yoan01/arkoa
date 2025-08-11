@@ -25,23 +25,23 @@ Arkoa est une application web moderne de gestion des congés construite avec Nex
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                    Frontend (Next.js)                      │
+│                    Frontend (Next.js)                       │
 ├─────────────────────────────────────────────────────────────┤
 │  ┌─────────────┐  ┌─────────────┐  ┌─────────────────────┐  │
 │  │   Pages     │  │ Components  │  │    Hooks & Utils    │  │
 │  │ (App Router)│  │    (UI)     │  │                     │  │
 │  └─────────────┘  └─────────────┘  └─────────────────────┘  │
 ├─────────────────────────────────────────────────────────────┤
-│                    API Layer (Next.js)                     │
+│                    API Layer (Next.js)                      │
 ├─────────────────────────────────────────────────────────────┤
 │  ┌─────────────┐  ┌─────────────┐  ┌─────────────────────┐  │
 │  │ API Routes  │  │  Services   │  │    Validation       │  │
 │  │             │  │  (Business) │  │     (Zod)           │  │
 │  └─────────────┘  └─────────────┘  └─────────────────────┘  │
 ├─────────────────────────────────────────────────────────────┤
-│                 Authentication (Better Auth)               │
+│                 Authentication (Better Auth)                │
 ├─────────────────────────────────────────────────────────────┤
-│                   Database (PostgreSQL)                    │
+│                   Database (PostgreSQL)                     │
 ├─────────────────────────────────────────────────────────────┤
 │  ┌─────────────┐  ┌─────────────┐  ┌─────────────────────┐  │
 │  │   Prisma    │  │   Models    │  │     Migrations      │  │
@@ -91,9 +91,6 @@ Arkoa est une application web moderne de gestion des congés construite avec Nex
 ```
 arkoa/
 ├── app/                           # Next.js App Router
-│   ├── (auth)/                    # Groupe de routes d'authentification
-│   │   ├── signin/                # Page de connexion
-│   │   └── signup/                # Page d'inscription
 │   ├── api/                       # API Routes
 │   │   ├── auth/                  # Endpoints Better Auth
 │   │   │   └── [...all]/          # Gestionnaire Better Auth
@@ -105,40 +102,110 @@ arkoa/
 │   │           ├── leaves/        # Congés de l'entreprise
 │   │           ├── memberships/   # Membres de l'entreprise
 │   │           └── stats/         # Statistiques
-│   ├── dashboard/                 # Interface utilisateur principale
-│   │   ├── companies/             # Gestion des entreprises
-│   │   ├── leaves/                # Gestion des congés
-│   │   └── settings/              # Paramètres
+│   ├── approvals/                 # Page d'approbation des congés
+│   │   └── page.tsx
+│   ├── auth/                      # Pages d'authentification
+│   │   ├── layout.tsx             # Layout pour les pages auth
+│   │   ├── signin/                # Page de connexion
+│   │   └── signup/                # Page d'inscription
+│   ├── hr/                        # Page RH
+│   │   └── page.tsx
+│   ├── leaves/                    # Page de gestion des congés
+│   │   └── page.tsx
+│   ├── team/                      # Pages de gestion d'équipe
+│   │   ├── [membershipId]/        # Détails d'un membre
+│   │   └── page.tsx               # Liste des membres
+│   ├── favicon.ico                # Icône du site
 │   ├── globals.css                # Styles globaux
 │   ├── layout.tsx                 # Layout racine
 │   └── page.tsx                   # Page d'accueil
 ├── src/
+│   ├── __tests__/                 # Tests d'intégration
+│   │   └── integration/
 │   ├── components/                # Composants React réutilisables
-│   │   ├── ui/                    # Composants UI de base
-│   │   ├── forms/                 # Composants de formulaires
-│   │   └── layout/                # Composants de mise en page
+│   │   ├── approvals/             # Composants pour les approbations
+│   │   ├── auth/                  # Composants d'authentification
+│   │   ├── company/               # Composants de gestion d'entreprise
+│   │   ├── dashboard/             # Composants du tableau de bord
+│   │   ├── hr/                    # Composants RH
+│   │   ├── layouts/               # Composants de mise en page
+│   │   ├── leaves/                # Composants de gestion des congés
+│   │   ├── leaves-balances/       # Composants de soldes de congés
+│   │   ├── nav/                   # Composants de navigation
+│   │   ├── providers/             # Providers React
+│   │   ├── team/                  # Composants de gestion d'équipe
+│   │   └── ui/                    # Composants UI de base
+│   ├── generated/                 # Code généré automatiquement
+│   ├── hooks/                     # Hooks React personnalisés
+│   │   ├── __tests__/             # Tests des hooks
+│   │   ├── api/                   # Hooks pour les API
+│   │   └── use-mobile.ts          # Hook de détection mobile
 │   ├── lib/                       # Utilitaires et configuration
+│   │   ├── __tests__/             # Tests des utilitaires
 │   │   ├── auth.ts                # Configuration Better Auth
 │   │   ├── auth-client.ts         # Client d'authentification
 │   │   ├── auth-server.ts         # Serveur d'authentification
-│   │   ├── db.ts                  # Configuration Prisma
+│   │   ├── constants.ts           # Constantes de l'application
+│   │   ├── dayjs-config.ts        # Configuration Day.js
+│   │   ├── errors.ts              # Classes d'erreur personnalisées
+│   │   ├── prisma.ts              # Configuration Prisma
+│   │   ├── test-utils.tsx         # Utilitaires pour les tests
 │   │   ├── utils.ts               # Utilitaires généraux
-│   │   └── services/              # Services métier
-│   │       ├── company-service.ts # Service des entreprises
-│   │       ├── leave-service.ts   # Service des congés
-│   │       └── membership-service.ts # Service des membres
+│   │   ├── validator.ts           # Utilitaires de validation
+│   │   ├── services/              # Services métier
+│   │   └── types/                 # Types TypeScript partagés
+│   ├── mocks/                     # Mocks pour les tests
+│   │   ├── handlers.ts            # Gestionnaires MSW
+│   │   └── server.ts              # Serveur de mock
 │   ├── schemas/                   # Schémas de validation Zod
+│   │   ├── __tests__/             # Tests des schémas
+│   │   ├── company-stats-schema.ts
 │   │   ├── create-company-schema.ts
 │   │   ├── create-leave-schema.ts
+│   │   ├── edit-leave-balance-dialog-schema.ts
 │   │   ├── invite-member-schema.ts
+│   │   ├── review-leave-schema.ts
+│   │   ├── update-company-schema.ts
+│   │   ├── update-leave-balance-schema.ts
+│   │   ├── update-leave-schema.ts
+│   │   ├── update-membership-schema.ts
 │   │   └── queries/               # Schémas pour les requêtes
+│   ├── stores/                    # Stores de gestion d'état
+│   │   ├── __tests__/             # Tests des stores
+│   │   ├── slices/                # Slices de store
+│   │   ├── storages/              # Configuration de stockage
+│   │   └── use-company-store.ts   # Store principal des entreprises
 │   └── types/                     # Types TypeScript
+│       └── jest-dom.d.ts          # Types pour Jest DOM
+├── e2e/                           # Tests end-to-end
+│   └── homepage.spec.ts
+├── playwright-report/             # Rapports Playwright
 ├── prisma/                        # Configuration Prisma
-│   ├── schema.prisma              # Schéma de base de données
-│   └── migrations/                # Migrations
+│   ├── migrations/                # Migrations de base de données
+│   └── schema.prisma              # Schéma de base de données
+├── public/                        # Fichiers statiques
+│   ├── file.svg
+│   ├── globe.svg
+│   ├── logo_arkoa.svg
+│   ├── next.svg
+│   ├── vercel.svg
+│   └── window.svg
 ├── docs/                          # Documentation
-├── docker/                        # Configuration Docker
-└── tests/                         # Tests
+├── components.json                # Configuration des composants UI
+├── docker-compose.production.yml  # Docker Compose pour la production
+├── docker-compose.staging.yml     # Docker Compose pour le staging
+├── Dockerfile                     # Configuration Docker
+├── eslint.config.mjs              # Configuration ESLint
+├── jest.config.js                 # Configuration Jest
+├── jest.integration.config.js     # Configuration Jest pour l'intégration
+├── jest.setup.js                  # Setup Jest
+├── middleware.ts                  # Middleware Next.js
+├── next.config.ts                 # Configuration Next.js
+├── package.json                   # Dépendances et scripts
+├── playwright.config.ts           # Configuration Playwright
+├── postcss.config.mjs             # Configuration PostCSS
+├── tailwind.config.js             # Configuration Tailwind CSS
+└── tsconfig.json                  # Configuration TypeScript
 ```
 
 ## Couches applicatives
@@ -689,14 +756,16 @@ describe('/api/companies', () => {
 
 ```
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   Load Balancer │────│   Web Server    │────│    Database     │
-│    (Nginx)      │    │   (Next.js)     │    │  (PostgreSQL)   │
+│   GitHub Actions│    │   Application   │    │    Database     │
+│     CI/CD       │────│   (Next.js)     │────│   (PostgreSQL)  │
+│                 │    │   + Prisma      │    │                 │
 └─────────────────┘    └─────────────────┘    └─────────────────┘
-                                │
-                                ▼
+                              │
+                              │
                        ┌─────────────────┐
-                       │   File Storage  │
-                       │    (Optional)   │
+                       │     Dokploy     │
+                       │   Deployment    │
+                       │   Platform      │
                        └─────────────────┘
 ```
 
@@ -704,51 +773,225 @@ describe('/api/companies', () => {
 
 ```dockerfile
 # Dockerfile
-FROM node:18-alpine AS base
+FROM node:20-alpine AS base
 
-# Dependencies
+# Install dependencies only when needed
 FROM base AS deps
+RUN apk add --no-cache libc6-compat
 WORKDIR /app
-COPY package.json pnpm-lock.yaml ./
-RUN npm install -g pnpm && pnpm install --frozen-lockfile
 
-# Builder
+# Install pnpm
+RUN npm install -g pnpm@8
+
+# Install dependencies
+COPY package.json pnpm-lock.yaml ./
+RUN pnpm install --frozen-lockfile
+
+# Rebuild the source code only when needed
 FROM base AS builder
 WORKDIR /app
+
+# Install pnpm
+RUN npm install -g pnpm@8
+
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-RUN npm run build
 
-# Runner
+# Generate Prisma client
+RUN pnpm prisma generate
+
+# Build the application
+RUN pnpm build
+
+# Production image, copy all the files and run next
 FROM base AS runner
 WORKDIR /app
-ENV NODE_ENV production
+
+ENV NODE_ENV=production
+
+# Install pnpm
+RUN npm install -g pnpm@8
+
+RUN addgroup --system --gid 1001 nodejs
+RUN adduser --system --uid 1001 nextjs
+
+# Copy built application
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
+COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
+
+# Set correct permissions
+RUN chown -R nextjs:nodejs /app
+
+USER nextjs
 
 EXPOSE 3000
+
+ENV PORT=3000
+ENV HOSTNAME="0.0.0.0"
+
 CMD ["node", "server.js"]
 ```
 
+### Configuration Docker Compose
+
+#### Production (docker-compose.production.yml)
+```yaml
+services:
+  web:
+    build: .
+    ports:
+      - "4000:3000"
+    environment:
+      - NODE_ENV=production
+      - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET}
+      - BETTER_AUTH_URL=${BETTER_AUTH_URL}
+      - DATABASE_URL=${DATABASE_URL}
+    command: pnpm start
+```
+
+#### Staging (docker-compose.staging.yml)
+```yaml
+services:
+  web:
+    build: .
+    ports:
+      - "4001:3000"
+    environment:
+      - NODE_ENV=staging
+      - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET}
+      - BETTER_AUTH_URL=${BETTER_AUTH_URL}
+      - DATABASE_URL=${DATABASE_URL}
+    command: pnpm start
+```
+
+### Pipeline CI/CD
+
+#### GitHub Actions (.github/workflows/ci-cd.yml)
+```yaml
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [prod, staging]
+
+env:
+  NODE_VERSION: '20'
+  PNPM_VERSION: '8'
+
+jobs:
+  test-and-deploy:
+    name: Test and Deploy
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: ${{ env.PNPM_VERSION }}
+          
+      - name: Install dependencies
+        run: pnpm install --no-frozen-lockfile
+        
+      - name: TypeScript check
+        run: pnpm ts:fix
+        
+      - name: Lint check
+        run: pnpm lint
+        
+      - name: Run tests
+        run: pnpm test:ci
+        
+      - name: Build application
+        run: pnpm build
+        
+      - name: Deploy to Staging
+        if: github.ref == 'refs/heads/staging'
+        run: |
+          curl -X POST \
+            "${{ secrets.DOKPLOY_URL }}/api/compose.deploy" \
+            -H 'accept: application/json' \
+            -H 'Content-Type: application/json' \
+            -H "x-api-key: ${{ secrets.DOKPLOY_API_KEY }}" \
+            -d '{
+              "composeId": "${{ secrets.STAGING_APP_ID }}"
+            }'
+          
+      - name: Deploy to Production
+        if: github.ref == 'refs/heads/production'
+        run: |
+          curl -X POST \
+            "${{ secrets.DOKPLOY_URL }}/api/compose.deploy" \
+            -H 'accept: application/json' \
+            -H 'Content-Type: application/json' \
+            -H "x-api-key: ${{ secrets.DOKPLOY_API_KEY }}" \
+            -d '{
+              "composeId": "${{ secrets.PRODUCTION_APP_ID }}"
+            }'
+```
+
+### Environnements de déploiement
+
+#### Staging
+- **URL** : Configurée via `BETTER_AUTH_URL`
+- **Port** : 4001 (mappé vers 3000 dans le conteneur)
+- **Branche** : `staging`
+- **Base de données** : Instance de staging
+
+#### Production
+- **URL** : Configurée via `BETTER_AUTH_URL`
+- **Port** : 4000 (mappé vers 3000 dans le conteneur)
+- **Branche** : `prod`
+- **Base de données** : Instance de production
+
+### Variables d'environnement
+
+#### Variables requises
+```bash
+# Authentification
+BETTER_AUTH_SECRET=your-secret-key
+BETTER_AUTH_URL=https://your-domain.com
+
+# Base de données
+DATABASE_URL=postgresql://user:password@host:port/database
+
+# Environnement
+NODE_ENV=production|staging|development
+```
+
+#### Secrets GitHub Actions
+- `DOKPLOY_URL` : URL de l'instance Dokploy
+- `DOKPLOY_API_KEY` : Clé API pour l'authentification Dokploy
+- `STAGING_APP_ID` : ID de l'application staging dans Dokploy
+- `PRODUCTION_APP_ID` : ID de l'application production dans Dokploy
+
 ## Évolutions futures
 
-### Roadmap technique
+#### Roadmap technique
 
-1. **Q1 2025**
-   - Mise en place du monitoring avancé
-   - Optimisation des performances
-   - Tests end-to-end complets
+**Phase 1 : Optimisation des performances**
+- Mise en place de Redis pour le cache
+- Optimisation des requêtes base de données
+- Implémentation du lazy loading
 
-2. **Q2 2025**
-   - API GraphQL optionnelle
-   - Système de notifications en temps réel
-   - Intégration avec des calendriers externes
+**Phase 2 : Scalabilité**
+- Migration vers une architecture microservices
+- Mise en place d'un message broker (RabbitMQ)
+- Implémentation de la réplication de base de données
 
-3. **Q3 2025**
-   - Architecture microservices
-   - Système de cache distribué
-   - Déploiement multi-région
+**Phase 3 : Observabilité**
+- Intégration de Prometheus/Grafana
+- Mise en place de logs centralisés
+- Monitoring applicatif avancé
 
 ### Améliorations prévues
 

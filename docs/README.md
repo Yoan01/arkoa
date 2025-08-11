@@ -2,7 +2,7 @@
 
 ## Vue d'ensemble
 
-Arkoa est une plateforme moderne de gestion des congés d'entreprise construite avec Next.js 15, TypeScript, Prisma et Better Auth. Elle permet aux entreprises de gérer efficacement les demandes de congés, les approbations et les soldes de leurs employés.
+Arkoa est une plateforme moderne de gestion des congés d'entreprise construite avec Next.js 15.3.4, TypeScript, Prisma et Better Auth. Elle permet aux entreprises de gérer efficacement les demandes de congés, les approbations et les soldes de leurs employés.
 
 ## Fonctionnalités principales
 
@@ -60,13 +60,15 @@ Arkoa est une plateforme moderne de gestion des congés d'entreprise construite 
 ## Architecture technique
 
 ### Stack technologique
-- **Frontend** : Next.js 15 avec App Router
+- **Frontend** : Next.js 15.3.4 avec App Router et Turbopack
 - **Backend** : API Routes Next.js
-- **Base de données** : PostgreSQL avec Prisma ORM
-- **Authentification** : Better Auth
-- **Validation** : Zod
-- **Styling** : Tailwind CSS
-- **Tests** : Jest + Testing Library
+- **Base de données** : PostgreSQL avec Prisma ORM 6.10.1
+- **Authentification** : Better Auth 1.2.10
+- **Validation** : Zod 3.25.67
+- **Styling** : Tailwind CSS 4.0
+- **State Management** : Zustand 5.0.6
+- **UI Components** : Radix UI
+- **Tests** : Jest 30.0.5 + Testing Library + Playwright
 - **Déploiement** : Docker + Docker Compose
 
 ### Structure du projet
@@ -76,17 +78,28 @@ arkoa/
 │   ├── api/               # API Routes
 │   │   ├── auth/          # Authentification Better Auth
 │   │   └── companies/     # Endpoints API entreprises
-│   ├── (auth)/            # Pages d'authentification
-│   └── dashboard/         # Interface utilisateur
+│   ├── auth/              # Pages d'authentification
+│   ├── hr/                # Interface RH
+│   ├── leaves/            # Gestion des congés
+│   ├── team/              # Interface équipe
+│   ├── approvals/         # Approbations
+│   └── globals.css        # Styles globaux
 ├── src/
+│   ├── __tests__/         # Tests unitaires
 │   ├── components/        # Composants React réutilisables
+│   ├── hooks/             # Hooks React personnalisés
 │   ├── lib/              # Utilitaires et services
-│   │   ├── auth.ts       # Configuration Better Auth
-│   │   └── services/     # Services métier
-│   └── schemas/          # Schémas de validation Zod
+│   ├── schemas/          # Schémas de validation Zod
+│   ├── stores/           # Stores Zustand
+│   ├── types/            # Types TypeScript
+│   ├── generated/        # Code généré (Prisma)
+│   └── mocks/            # Mocks pour les tests
 ├── prisma/               # Schéma et migrations Prisma
 ├── docs/                 # Documentation
-└── docker/               # Configuration Docker
+├── e2e/                  # Tests end-to-end
+├── docker-compose.production.yml
+├── docker-compose.staging.yml
+└── Dockerfile
 ```
 
 ### Base de données
@@ -104,7 +117,7 @@ Le schéma Prisma définit les modèles suivants :
 ## Installation et développement
 
 ### Prérequis
-- Node.js 18+
+- Node.js 18.19.1+
 - PostgreSQL 14+
 - pnpm (recommandé) ou npm
 
@@ -112,7 +125,7 @@ Le schéma Prisma définit les modèles suivants :
 
 1. **Cloner le projet**
 ```bash
-git clone https://github.com/arkoa/arkoa.git
+git clone <repository-url>
 cd arkoa
 ```
 
@@ -147,7 +160,7 @@ npx prisma generate
 pnpm dev
 ```
 
-L'application sera accessible sur `http://localhost:3000`
+L'application sera accessible sur `http://localhost:3000` (avec Turbopack pour un développement plus rapide)
 
 ### Développement avec Docker
 
@@ -166,7 +179,7 @@ docker-compose down
 
 ```bash
 # Développement
-pnpm dev              # Serveur de développement
+pnpm dev              # Serveur de développement avec Turbopack
 pnpm build            # Build de production
 pnpm start            # Serveur de production
 pnpm lint             # Linting ESLint
@@ -188,22 +201,22 @@ pnpm test:integration # Tests d'intégration
 pnpm test:integration:watch # Tests d'intégration en mode watch
 pnpm test:integration:coverage # Couverture tests d'intégration
 pnpm test:integration:ci # Tests d'intégration pour CI
-pnpm test:e2e         # Tests end-to-end
-pnpm test:e2e:ui      # Tests e2e avec interface
+pnpm test:e2e         # Tests end-to-end avec Playwright
+pnpm test:e2e:ui      # Tests e2e avec interface Playwright
 pnpm test:e2e:headed  # Tests e2e en mode headed
-pnpm test:all         # Tous les tests
+pnpm test:all         # Tous les tests (unitaires + intégration + e2e)
 ```
 
 ## API et intégrations
 
 ### Endpoints principaux
 
-- **Authentification** : `/api/auth/*`
-- **Entreprises** : `/api/companies`
-- **Membres** : `/api/companies/{companyId}/memberships`
-- **Congés** : `/api/companies/{companyId}/memberships/{membershipId}/leaves`
-- **Soldes** : `/api/companies/{companyId}/memberships/{membershipId}/leave-balances`
-- **Statistiques** : `/api/companies/{companyId}/stats`
+- **Authentification** : `/api/auth/[...all]` (Better Auth)
+- **Entreprises** : `/api/companies` et `/api/companies/[companyId]`
+- **Calendrier** : `/api/companies/[companyId]/calendar`
+- **Congés** : `/api/companies/[companyId]/leaves`
+- **Membres** : `/api/companies/[companyId]/memberships`
+- **Statistiques** : `/api/companies/[companyId]/stats`
 
 ### Documentation API
 
@@ -225,17 +238,23 @@ pnpm test:watch
 
 ### Tests d'intégration
 ```bash
-# Tests API
-pnpm test src/lib/services/
+# Tests d'intégration
+pnpm test:integration
 
-# Tests composants
-pnpm test src/components/
+# Tests d'intégration avec couverture
+pnpm test:integration:coverage
 ```
 
 ### Tests end-to-end
 ```bash
-# Avec Playwright
+# Tests e2e avec Playwright
 pnpm test:e2e
+
+# Tests e2e avec interface utilisateur
+pnpm test:e2e:ui
+
+# Tests e2e en mode headed (avec navigateur visible)
+pnpm test:e2e:headed
 ```
 
 ## Déploiement
@@ -255,7 +274,7 @@ docker build -t arkoa:latest .
 
 2. **Déploiement avec Docker Compose**
 ```bash
-# Production
+# Production (port 4000)
 docker-compose -f docker-compose.production.yml up -d
 
 # Staging
@@ -276,6 +295,8 @@ NEXT_PUBLIC_APP_URL="https://arkoa.app"
 # Environnement
 NODE_ENV="production"
 ```
+
+**Note** : Le service web est exposé sur le port 4000 en production (mappé vers le port 3000 du conteneur).
 
 ## Sécurité
 
@@ -330,30 +351,24 @@ type(scope): description
 
 Types : `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`
 
-Consultez le [Guide de contribution](./CONTRIBUTING.md) pour plus de détails.
+Consultez la documentation technique pour plus de détails sur l'architecture et les bonnes pratiques.
 
 ## Support et documentation
 
 ### Documentation
 
 - [Guide d'installation](./INSTALLATION_GUIDE.md)
+- [Documentation technique](./TECHNICAL_DOCUMENTATION.md)
 - [Guide API](./API_GUIDE.md)
 - [Guide d'architecture](./ARCHITECTURE_GUIDE.md)
 - [Guide de déploiement](./DEPLOYMENT_GUIDE.md)
 - [Guide de sécurité](./SECURITY_GUIDE.md)
-- [Guide de contribution](./CONTRIBUTING.md)
+- [PRD (Product Requirements Document)](./PRD.md)
 
 ### Support
 
-- **GitHub Issues** : [Créer une issue](https://github.com/ORGANISATION/arkoa/issues)
 - **Documentation** : Voir le dossier `/docs`
-- **Issues** : [GitHub Issues](https://github.com/arkoa/arkoa/issues)
-
-### Communauté
-
-- **Discord** : [Serveur Discord Arkoa](https://discord.gg/arkoa)
-- **Twitter** : [@ArkoaApp](https://twitter.com/ArkoaApp)
-- **LinkedIn** : [Arkoa](https://linkedin.com/company/arkoa)
+- **Issues** : Créer une issue dans le repository du projet
 
 ## Licence
 
@@ -361,7 +376,7 @@ Ce projet est sous licence MIT. Voir le fichier [LICENSE](../LICENSE) pour plus 
 
 ## Changelog
 
-### Version 1.0.0 (Janvier 2025)
+### Version 0.1.0 (Janvier 2025)
 
 #### Fonctionnalités
 - ✅ Authentification Better Auth
@@ -385,6 +400,6 @@ Ce projet est sous licence MIT. Voir le fichier [LICENSE](../LICENSE) pour plus 
 ---
 
 **Arkoa** - Simplifiez la gestion des congés de votre entreprise  
-**Version** : 1.0.0  
-**Dernière mise à jour** : 9 août 2025  
-**Site web** : À déployer
+**Version** : 0.1.0  
+**Dernière mise à jour** : août 2025  
+**Statut** : En développement
