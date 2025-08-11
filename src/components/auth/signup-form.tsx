@@ -26,6 +26,7 @@ import { passwordConstraint } from '@/lib/validator'
 import { UserCompanyInput } from '@/schemas/queries/user-company-schema'
 import { useCompanyStore } from '@/stores/use-company-store'
 
+import { GoogleComingSoonDialog } from '../ui/google-coming-soon-dialog'
 import { Icons } from '../ui/icons'
 import { OrSeparator } from '../ui/or-separator'
 
@@ -37,6 +38,7 @@ const formSchema = z.object({
 
 export default function SignupForm() {
   const [isloading, setIsloading] = useState(false)
+  const [isGoogleDialogOpen, setIsGoogleDialogOpen] = useState(false)
   const router = useRouter()
   const { activeCompany, setActiveCompany } = useCompanyStore()
   const { refetch: refetchCompanies } = useGetCompanies({ enabled: false })
@@ -171,10 +173,19 @@ export default function SignupForm() {
       <OrSeparator />
 
       <div className='flex flex-col items-center justify-between gap-4'>
-        <Button variant='outline' className='w-full'>
+        <Button
+          variant='outline'
+          className='w-full'
+          onClick={() => setIsGoogleDialogOpen(true)}
+        >
           <Icons.google className='mr-2 size-5' />
           S'inscrire avec Google
         </Button>
+
+        <GoogleComingSoonDialog
+          open={isGoogleDialogOpen}
+          onOpenChange={setIsGoogleDialogOpen}
+        />
 
         <span className='flex items-end gap-1 text-xs'>
           Vous avez déjà un compte?

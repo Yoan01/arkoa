@@ -16,7 +16,7 @@ export default function AuthLayout({
         </div>
 
         <div className='text-muted-foreground text-lg'>
-          "The Open Source alternative to Netlify, Vercel, Heroku."
+          "Simplifiez la gestion des congés de votre entreprise."
         </div>
       </div>
 

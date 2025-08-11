@@ -8,6 +8,7 @@ import {
   UserCircleIcon,
 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
+import { useState } from 'react'
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import {
@@ -19,6 +20,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { FeatureComingSoonDialog } from '@/components/ui/feature-coming-soon-dialog'
 import {
   SidebarMenu,
   SidebarMenuButton,
@@ -31,6 +33,13 @@ export function NavUser({}) {
   const { isMobile } = useSidebar()
   const router = useRouter()
   const { data } = useSession()
+  const [isFeatureDialogOpen, setIsFeatureDialogOpen] = useState(false)
+  const [selectedFeature, setSelectedFeature] = useState('')
+
+  const handleFeatureClick = (featureName: string) => {
+    setSelectedFeature(featureName)
+    setIsFeatureDialogOpen(true)
+  }
 
   if (!data) {
     return null
@@ -94,15 +103,17 @@ export function NavUser({}) {
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleFeatureClick('Comtpe')}>
                 <UserCircleIcon />
-                Account
+                Comtpe
               </DropdownMenuItem>
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleFeatureClick('Factures')}>
                 <CreditCardIcon />
-                Billing
+                Factures
               </DropdownMenuItem>
-              <DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => handleFeatureClick('Notifications')}
+              >
                 <BellIcon />
                 Notifications
               </DropdownMenuItem>
@@ -124,6 +135,11 @@ export function NavUser({}) {
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
+        <FeatureComingSoonDialog
+          open={isFeatureDialogOpen}
+          onOpenChange={setIsFeatureDialogOpen}
+          featureName={selectedFeature}
+        />
       </SidebarMenuItem>
     </SidebarMenu>
   )

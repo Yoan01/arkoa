@@ -55,12 +55,7 @@ jest.mock('@/components/ui/sidebar', () => ({
   ),
 }))
 
-// Mock lucide-react
-jest.mock('lucide-react', () => ({
-  MoreHorizontalIcon: ({ className, ...props }: any) => (
-    <div data-testid='more-horizontal-icon' className={className} {...props} />
-  ),
-}))
+// Mock lucide-react icons are not needed anymore since the component doesn't use them directly
 
 // Mock des constantes
 jest.mock('@/lib/constants', () => ({
@@ -111,22 +106,6 @@ describe('NavManagers', () => {
     expect(screen.getByTestId('company-settings-icon')).toBeInTheDocument()
     expect(screen.getByTestId('user-management-icon')).toBeInTheDocument()
     expect(screen.getByTestId('reports-icon')).toBeInTheDocument()
-  })
-
-  it('should render More button with proper styling', () => {
-    render(<NavManagers />)
-
-    const moreButton = screen.getByText('More')
-    expect(moreButton).toBeInTheDocument()
-
-    const moreIcon = screen.getByTestId('more-horizontal-icon')
-    expect(moreIcon).toBeInTheDocument()
-    expect(moreIcon).toHaveClass('text-sidebar-foreground/70')
-
-    const moreMenuButton = moreButton.closest(
-      '[data-testid="sidebar-menu-button"]'
-    )
-    expect(moreMenuButton).toHaveClass('text-sidebar-foreground/70')
   })
 
   it('should mark active menu item based on pathname', () => {
@@ -198,7 +177,7 @@ describe('NavManagers', () => {
     expect(screen.getByTestId('sidebar-group')).toBeInTheDocument()
     expect(screen.getByTestId('sidebar-group-label')).toBeInTheDocument()
     expect(screen.getByTestId('sidebar-menu')).toBeInTheDocument()
-    expect(screen.getAllByTestId('sidebar-menu-item')).toHaveLength(4) // 3 nav items + 1 more button
+    expect(screen.getAllByTestId('sidebar-menu-item')).toHaveLength(3) // 3 nav items only
   })
 
   it('should handle different pathname scenarios', () => {
@@ -208,12 +187,8 @@ describe('NavManagers', () => {
 
     const menuButtons = screen.getAllByTestId('sidebar-menu-button')
 
-    // No navigation button should be active for unknown path (excluding More button)
-    const navButtons = menuButtons.filter(
-      button => button.textContent && !button.textContent.includes('More')
-    )
-
-    navButtons.forEach(button => {
+    // No navigation button should be active for unknown path
+    menuButtons.forEach(button => {
       expect(button).toHaveAttribute('data-active', 'false')
     })
   })

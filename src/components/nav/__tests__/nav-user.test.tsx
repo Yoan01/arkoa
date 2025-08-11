@@ -92,6 +92,20 @@ jest.mock('@/components/ui/sidebar', () => ({
   useSidebar: () => ({ isMobile: false }),
 }))
 
+// Mock FeatureComingSoonDialog
+jest.mock('@/components/ui/feature-coming-soon-dialog', () => ({
+  FeatureComingSoonDialog: ({ open, onOpenChange, featureName }: any) => (
+    <div
+      data-testid='feature-coming-soon-dialog'
+      data-open={open}
+      data-feature-name={featureName}
+      onClick={() => onOpenChange(false)}
+    >
+      Feature Coming Soon: {featureName}
+    </div>
+  ),
+}))
+
 // Mock lucide-react
 jest.mock('lucide-react', () => ({
   BellIcon: (props: any) => <div data-testid='bell-icon' {...props} />,
@@ -218,8 +232,8 @@ describe('NavUser', () => {
   it('should render dropdown menu items', () => {
     render(<NavUser />)
 
-    expect(screen.getByText('Account')).toBeInTheDocument()
-    expect(screen.getByText('Billing')).toBeInTheDocument()
+    expect(screen.getByText('Comtpe')).toBeInTheDocument()
+    expect(screen.getByText('Factures')).toBeInTheDocument()
     expect(screen.getByText('Notifications')).toBeInTheDocument()
     expect(screen.getByText('Se deconnecter')).toBeInTheDocument()
 
@@ -326,5 +340,71 @@ describe('NavUser', () => {
     expect(dropdownLabel).toContainElement(
       screen.getAllByText('john.doe@example.com')[1]
     )
+  })
+
+  it('should render FeatureComingSoonDialog', () => {
+    render(<NavUser />)
+
+    const dialog = screen.getByTestId('feature-coming-soon-dialog')
+    expect(dialog).toBeInTheDocument()
+    expect(dialog).toHaveAttribute('data-open', 'false')
+  })
+
+  it('should open dialog when clicking on Compte', async () => {
+    const user = userEvent.setup()
+
+    render(<NavUser />)
+
+    const compteItem = screen.getByText('Comtpe')
+    await user.click(compteItem)
+
+    const dialog = screen.getByTestId('feature-coming-soon-dialog')
+    expect(dialog).toHaveAttribute('data-open', 'true')
+    expect(dialog).toHaveAttribute('data-feature-name', 'Comtpe')
+  })
+
+  it('should open dialog when clicking on Factures', async () => {
+    const user = userEvent.setup()
+
+    render(<NavUser />)
+
+    const facturesItem = screen.getByText('Factures')
+    await user.click(facturesItem)
+
+    const dialog = screen.getByTestId('feature-coming-soon-dialog')
+    expect(dialog).toHaveAttribute('data-open', 'true')
+    expect(dialog).toHaveAttribute('data-feature-name', 'Factures')
+  })
+
+  it('should open dialog when clicking on Notifications', async () => {
+    const user = userEvent.setup()
+
+    render(<NavUser />)
+
+    const notificationsItem = screen.getByText('Notifications')
+    await user.click(notificationsItem)
+
+    const dialog = screen.getByTestId('feature-coming-soon-dialog')
+    expect(dialog).toHaveAttribute('data-open', 'true')
+    expect(dialog).toHaveAttribute('data-feature-name', 'Notifications')
+  })
+
+  it('should close dialog when onOpenChange is called', async () => {
+    const user = userEvent.setup()
+
+    render(<NavUser />)
+
+    // Open dialog first
+    const compteItem = screen.getByText('Comtpe')
+    await user.click(compteItem)
+
+    let dialog = screen.getByTestId('feature-coming-soon-dialog')
+    expect(dialog).toHaveAttribute('data-open', 'true')
+
+    // Close dialog
+    await user.click(dialog)
+
+    dialog = screen.getByTestId('feature-coming-soon-dialog')
+    expect(dialog).toHaveAttribute('data-open', 'false')
   })
 })

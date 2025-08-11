@@ -1,6 +1,5 @@
 'use client'
 
-import { MoreHorizontalIcon } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
@@ -34,12 +33,6 @@ export function NavManagers() {
             </SidebarMenuButton>
           </SidebarMenuItem>
         ))}
-        <SidebarMenuItem>
-          <SidebarMenuButton className='text-sidebar-foreground/70'>
-            <MoreHorizontalIcon className='text-sidebar-foreground/70' />
-            <span>More</span>
-          </SidebarMenuButton>
-        </SidebarMenuItem>
       </SidebarMenu>
     </SidebarGroup>
   )
