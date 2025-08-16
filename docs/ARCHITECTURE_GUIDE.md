@@ -874,7 +874,7 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches: [prod, staging]
+    branches: [production, staging]
 
 env:
   NODE_VERSION: '20'
@@ -950,7 +950,7 @@ jobs:
 #### Production
 - **URL** : Configurée via `BETTER_AUTH_URL`
 - **Port** : 4000 (mappé vers 3000 dans le conteneur)
-- **Branche** : `prod`
+- **Branche** : `production`
 - **Base de données** : Instance de production
 
 ### Variables d'environnement

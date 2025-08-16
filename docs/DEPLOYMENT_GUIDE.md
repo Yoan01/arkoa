@@ -264,7 +264,7 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches: [prod, staging]
+    branches: [production, staging]
 
 env:
   NODE_VERSION: '20'
@@ -341,7 +341,7 @@ Le déploiement se fait via Dokploy avec les secrets GitHub suivants :
 ### Branches de déploiement
 
 - **staging** : Déploie automatiquement vers l'environnement de staging
-- **prod** : Déploie automatiquement vers l'environnement de production
+- **production** : Déploie automatiquement vers l'environnement de production
 
 ### Scripts de test disponibles
 

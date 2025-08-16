@@ -209,7 +209,7 @@ docker-compose -f docker-compose.production.yml logs -f
 
 Le pipeline CI/CD est configuré dans `.github/workflows/ci-cd.yml` :
 
-- **Déclenchement** : Push sur `staging` ou `prod`
+- **Déclenchement** : Push sur `staging` ou `production`
 - **Étapes** : 
   1. Checkout du code
   2. Configuration Node.js 20 et pnpm
@@ -220,7 +220,7 @@ Le pipeline CI/CD est configuré dans `.github/workflows/ci-cd.yml` :
   7. Déploiement automatique via Dokploy
 - **Environnements** : 
   - Staging (port 4001) pour la branche `staging`
-  - Production (port 4000) pour la branche `prod`
+  - Production (port 4000) pour la branche `production`
 
 ### Configuration des secrets GitHub
 
@@ -389,8 +389,8 @@ fetch('/api/endpoint', {
    # Push sur la branche staging
    git push origin staging
    
-   # Après validation, push sur prod
-   git push origin prod
+   # Après validation, push sur production
+git push origin production
    ```
 
 3. **Vérification post-déploiement**
