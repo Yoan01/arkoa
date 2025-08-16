@@ -10,4 +10,4 @@ services:
       - BETTER_AUTH_URL
       - DATABASE_URL
       - NODE_ENV
-    command: pnpm start
+    command: sh -c "npx prisma migrate deploy && pnpm start"
