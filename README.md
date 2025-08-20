@@ -47,8 +47,7 @@ pnpm install
 
 # Configurer la base de données
 pnpm prisma generate
-pnpm prisma migrate dev
-
+pnpm prisma migrate deploy
 # Lancer en développement
 pnpm dev
 ```
